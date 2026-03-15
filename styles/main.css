@@ -962,6 +962,17 @@ html.dark-mode .footer-divider {
   border-color: rgba(251, 246, 242, 0.16);
 }
 
+@keyframes cursorBlink {
+  0%,
+  100% {
+    opacity: 0.85;
+  }
+
+  50% {
+    opacity: 0;
+  }
+}
+
 @keyframes riseIn {
   to {
     opacity: 1;
