@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ola Kelly</title>
+
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Allura&family=Lato:wght@300;400;700&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/styles/main.css">
+</head>
+
+<body class="h-full">
+  <div id="app-wrapper" class="w-full h-full overflow-auto">
+
+    <header class="site-header" id="siteHeader">
+      <div class="container-shell">
+        <nav class="header-nav flex items-center justify-between" aria-label="Main navigation">
+
+          <a href="#home" id="wordmark" class="font-heading wordmark">Ola Kelly</a>
+
+          <div class="hidden md:flex items-center desktop-nav">
+            <a href="#home" class="nav-link nav-link-text">Home</a>
+            <a href="#ideas" class="nav-link nav-link-text">Ideas</a>
+            <a href="#framework" class="nav-link nav-link-text">STEWARD Framework</a>
+            <a href="#about" class="nav-link nav-link-text">About</a>
+            <span class="nav-divider"></span>
+            <button id="themeToggle" class="theme-toggle" aria-label="Toggle dark mode">
+              <i data-lucide="sun" class="sun-icon"></i>
+              <i data-lucide="moon" class="moon-icon"></i>
+            </button>
+            <a href="#newsletter" id="headerCta" class="header-cta-link">Subscribe</a>
+          </div>
+
+          <button id="mobileMenuBtn" class="mobile-menu-btn md:hidden" aria-label="Open menu">
+            <i data-lucide="menu"></i>
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <div class="mobile-nav-overlay" id="mobileOverlay"></div>
+
+    <aside class="mobile-nav-panel" id="mobilePanel" aria-label="Mobile navigation">
+      <div class="mobile-panel-inner">
+        <div class="flex items-center justify-between mobile-panel-top">
+          <span class="font-heading mobile-panel-brand">Ola Kelly</span>
+          <button id="mobileCloseBtn" class="mobile-close-btn" aria-label="Close menu">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+
+        <div class="flex flex-col mobile-panel-links">
+          <a href="#home" id="mobileNavHome" class="font-heading mobile-nav-link-text">Home</a>
+          <a href="#ideas" id="mobileNavIdeas" class="font-heading mobile-nav-link-text">Ideas</a>
+          <a href="#framework" id="mobileNavFramework" class="font-heading mobile-nav-link-text">STEWARD Framework</a>
+          <a href="#about" id="mobileNavAbout" class="font-heading mobile-nav-link-text">About</a>
+          <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" id="mobileNavLinkedin" class="font-heading mobile-nav-link-text">LinkedIn</a>
+
+          <hr class="mobile-panel-rule">
+
+          <div class="mobile-panel-bottom">
+            <a href="#newsletter" id="mobileCta" class="font-heading mobile-cta-link">Subscribe</a>
+            <button id="mobileThemeToggle" class="theme-toggle" aria-label="Toggle dark mode">
+              <i data-lucide="sun" class="sun-icon"></i>
+              <i data-lucide="moon" class="moon-icon"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main>
+      <section id="home" class="hero-section">
+        <div class="hero-inner">
+          <p id="eyebrowText" class="font-heading animate-rise delay-1 eyebrow-text">Ideas on Responsible Leadership</p>
+
+          <hr class="gold-rule animate-rise delay-2">
+
+          <h1 id="headlineText" class="font-heading animate-rise delay-2 hero-title">
+            Leadership is stewardship.
+          </h1>
+
+          <div class="animate-rise delay-3 hero-animated-row-wrap">
+            <p class="font-heading hero-animated-row">
+              <span id="stewarding-word">Stewarding</span>
+              <span id="animatedWord" class="animated-word"></span>
+              <span class="typing-cursor" id="typingCursor"></span>
+            </p>
+          </div>
+
+          <p id="bodyText" class="font-body animate-rise delay-4 hero-body">
+            Leadership carries responsibility. The most thoughtful leaders do not simply accumulate influence.
+            They learn to steward commitments, energy, and decisions deliberately so success remains sustainable
+            rather than exhausting.
+          </p>
+
+          <div class="flex flex-wrap items-center animate-rise delay-5 hero-cta-row">
+            <button id="primaryCtaBtn" class="btn-primary">Explore the Ideas</button>
+            <button id="secondaryCtaBtn" class="btn-secondary">The STEWARD Framework</button>
+          </div>
+
+          <p id="supportingText" class="font-body animate-rise delay-6 supporting-text">
+            Thoughtful essays, practical frameworks, and leadership reflections.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <div class="divider-wrap">
+      <div class="divider-line divider-left"></div>
+      <div class="divider-dot"></div>
+      <div class="divider-line divider-right"></div>
+    </div>
+
+    <section id="ideas" class="content-section">
+      <div class="container-shell">
+        <div class="section-intro-wrap">
+          <h2 id="sectionTitle" class="font-heading section-heading">Ideas on Leadership Stewardship</h2>
+          <p id="sectionIntro" class="font-body body-copy">
+            Leadership is not ownership of influence.<br>
+            It is stewardship of it.<br><br>
+            These essays explore how thoughtful leaders evaluate commitments, manage responsibility, and pursue
+            meaningful ambition without sacrificing the energy required to sustain it.
+          </p>
+        </div>
+
+        <div class="article-grid grid">
+          <article class="article-card ideas-rise flex flex-col">
+            <h3 id="article1Title" class="font-heading article-title">Imposter Syndrome and Ethical Self-Awareness</h3>
+            <p id="article1Excerpt" class="font-body body-copy article-excerpt">
+              Feeling unprepared is not weakness—it’s often the mark of ethical awareness. How to build confidence
+              grounded in honest self-assessment rather than false certainty.
+            </p>
+            <a href="#" class="read-more-link cta-link">Read More →</a>
+          </article>
+
+          <article class="article-card ideas-rise flex flex-col">
+            <h3 id="article2Title" class="font-heading article-title">Leading Without a Title</h3>
+            <p id="article2Excerpt" class="font-body body-copy article-excerpt">
+              Authority comes from influence, not position. Explore how stewards shape outcomes through credibility,
+              trust, and clarity—regardless of formal authority.
+            </p>
+            <a href="#" class="read-more-link cta-link">Read More →</a>
+          </article>
+
+          <article class="article-card ideas-rise flex flex-col">
+            <h3 id="article3Title" class="font-heading article-title">The Hidden Cost of Saying Yes Too Quickly</h3>
+            <p id="article3Excerpt" class="font-body body-copy article-excerpt">
+              Overcommitment drains energy and dilutes impact. Why thoughtful leaders say no—and how to distinguish
+              between opportunity and obligation.
+            </p>
+            <a href="#" class="read-more-link cta-link">Read More →</a>
+          </article>
+        </div>
+
+        <div class="section-center-link text-center">
+          <a id="viewAllLink" href="#ideas" class="font-heading cta-link">View All Writing →</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="framework" class="content-section">
+      <div class="container-shell">
+        <div class="section-center-intro">
+          <h2 id="frameworkTitle" class="font-heading section-heading">The STEWARD Framework™</h2>
+          <p id="frameworkIntro" class="font-body body-copy">
+            The STEWARD Framework is a leadership decision discipline for evaluating responsibility, opportunity,
+            and influence before accepting new commitments.<br><br>
+            It helps leaders move from reactive decision-making to deliberate stewardship.
+          </p>
+        </div>
+
+        <div class="framework-grid grid">
+          <div class="framework-card">
+            <div class="card-head"><span class="card-letter">S</span>
+              <h3 id="element_s_title" class="card-title">Scope the Responsibility</h3>
+            </div>
+            <p id="element_s_desc" class="font-body body-copy">Define what the responsibility actually includes before
+              agreeing.</p>
+          </div>
+
+          <div class="framework-card">
+            <div class="card-head"><span class="card-letter">T</span>
+              <h3 id="element_t_title" class="card-title">Trade-Off Analysis</h3>
+            </div>
+            <p id="element_t_desc" class="font-body body-copy">Evaluate what the commitment will displace.</p>
+          </div>
+
+          <div class="framework-card">
+            <div class="card-head"><span class="card-letter">E</span>
+              <h3 id="element_e_title" class="card-title">Energy Audit</h3>
+            </div>
+            <p id="element_e_desc" class="font-body body-copy">Assess physical, emotional, and cognitive capacity.</p>
+          </div>
+
+          <div class="framework-card">
+            <div class="card-head"><span class="card-letter">W</span>
+              <h3 id="element_w_title" class="card-title">Weighted Priorities</h3>
+            </div>
+            <p id="element_w_desc" class="font-body body-copy">Determine whether the opportunity meaningfully moves the
+              mission forward.</p>
+          </div>
+
+          <div class="framework-card">
+            <div class="card-head"><span class="card-letter">A</span>
+              <h3 id="element_a_title" class="card-title">Alignment Check</h3>
+            </div>
+            <p id="element_a_desc" class="font-body body-copy">Ensure the responsibility aligns with role, season, and
+              long-term trajectory.</p>
+          </div>
+
+          <div class="framework-card">
+            <div class="card-head"><span class="card-letter">R</span>
+              <h3 id="element_r_title" class="card-title">Risk Anticipation</h3>
+            </div>
+            <p id="element_r_desc" class="font-body body-copy">Identify potential consequences and sources of
+              overextension.</p>
+          </div>
+
+          <div class="framework-card">
+            <div class="card-head"><span class="card-letter">D</span>
+              <h3 id="element_d_title" class="card-title">Deliberate Boundaries</h3>
+            </div>
+            <p id="element_d_desc" class="font-body body-copy">Define expectations, structure, and limits before saying
+              yes.</p>
+          </div>
+        </div>
+
+        <div class="framework-question-wrap text-center">
+          <p id="triggerQuestion" class="font-heading framework-question">
+            Before I say yes, have I stewarded this decision?
+          </p>
+        </div>
+
+        <div class="section-center-link text-center">
+          <button id="frameworkCtaBtn" class="btn-primary">How to Steward a Decision</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="content-section">
+      <div class="container-shell">
+        <div class="section-center-intro">
+          <h2 id="decisionsTitle" class="font-heading section-heading">Leadership Decisions</h2>
+          <p id="decisionsIntro" class="font-body body-copy">
+            The STEWARD Framework is designed to guide real leadership decisions.<br><br>
+            Many responsibilities appear attractive on the surface, but thoughtful leaders evaluate the full
+            implications before agreeing to them.<br><br>
+            The framework provides a structured way to examine commitments deliberately rather than reacting to them.
+          </p>
+        </div>
+
+        <div class="decision-grid grid">
+          <div class="decision-card">
+            <h3 id="decision1Title" class="card-title decision-title">Should I accept this leadership role?</h3>
+            <p id="decision1Desc" class="font-body body-copy">Before stepping into a new leadership position, thoughtful
+              leaders evaluate scope, expectations, trade-offs, and long-term alignment.</p>
+          </div>
+
+          <div class="decision-card">
+            <h3 id="decision2Title" class="card-title decision-title">Should I join this board?</h3>
+            <p id="decision2Desc" class="font-body body-copy">Board service can create meaningful impact, but it also
+              carries governance responsibility, time commitments, and reputational considerations.</p>
+          </div>
+
+          <div class="decision-card">
+            <h3 id="decision3Title" class="card-title decision-title">Should I lead this initiative?</h3>
+            <p id="decision3Desc" class="font-body body-copy">High-visibility projects often appear exciting, but they
+              may also require significant energy, focus, and political navigation.</p>
+          </div>
+
+          <div class="decision-card">
+            <h3 id="decision4Title" class="card-title decision-title">Should I say yes to this opportunity?</h3>
+            <p id="decision4Desc" class="font-body body-copy">Not every opportunity moves the mission forward.
+              Thoughtful leaders evaluate whether new commitments truly deserve their time and attention.</p>
+          </div>
+        </div>
+
+        <div class="section-center-link text-center">
+          <a id="decisionsCta" href="#framework" class="font-heading cta-link">Explore the Framework in Practice →</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="about" class="content-section">
+      <div class="container-shell">
+        <h2 id="aboutTitle" class="font-heading section-heading about-title text-center">Why Leadership is Stewardship
+        </h2>
+
+        <div class="about-grid grid">
+          <div class="about-image-placeholder">PORTRAIT PLACEHOLDER</div>
+
+          <div class="about-copy-stack">
+            <p id="aboutIntro" class="font-body body-copy about-strong">Leadership conversations often focus on
+              influence, authority, or visibility.</p>
+
+            <p id="aboutBody" class="font-body body-copy">
+              But influence carries responsibility.<br><br>
+              The idea behind this platform is simple: leadership is stewardship.<br><br>
+              Thoughtful leaders recognize that commitments, decisions, and opportunities all carry consequences —
+              for themselves, their teams, and the organizations they serve.<br><br>
+              Rather than asking how much influence they can accumulate, they ask a different question:<br><br>
+              <span class="inline-emphasis">How should influence be stewarded?</span><br><br>
+              This site explores that question through essays, reflections, and the development of the STEWARD
+              Framework — a decision discipline for evaluating responsibilities before accepting them.
+            </p>
+
+            <p id="aboutClosing" class="font-body body-copy about-strong">
+              The goal is not louder leadership.<br><br>
+              It is more deliberate leadership.
+            </p>
+
+            <div class="about-cta-wrap">
+              <a id="aboutCta" href="#" class="font-heading cta-link">Learn more about Ola →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="content-section">
+      <div class="conversation-shell">
+        <h2 id="conversationsTitle" class="font-heading section-heading conversations-title text-center">Leadership
+          Conversations</h2>
+
+        <div class="conversation-copy">
+          <p id="conversationsIntro" class="font-body body-copy about-strong">The most important leadership ideas are
+            rarely developed alone.</p>
+          <p id="conversationsBody" class="font-body body-copy">They emerge through conversations, questions,
+            disagreements, and thoughtful reflection.</p>
+          <p class="font-body body-copy">This platform will continue to grow into a space for leadership dialogue —
+            exploring the practice of responsible influence and sustainable success.</p>
+          <p id="conversationsFuture" class="font-body body-copy">Future conversations may include essays, leadership
+            salons, small gatherings, retreats, and speaking engagements focused on the stewardship of leadership.</p>
+        </div>
+
+        <div class="conversation-tags flex flex-wrap justify-center gap-4">
+          <span id="theme1" class="conversation-theme">Essays</span>
+          <span id="theme2" class="conversation-theme">Leadership Salons</span>
+          <span id="theme3" class="conversation-theme">Retreat Conversations</span>
+          <span id="theme4" class="conversation-theme">Speaking</span>
+          <span id="theme5" class="conversation-theme">Leadership Dialogue</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="subtle-divider-wrap">
+      <div class="subtle-divider-line"></div>
+    </div>
+
+    <section id="newsletter" class="content-section">
+      <div class="newsletter-shell">
+        <div class="newsletter-top-rule-wrap flex items-center justify-center">
+          <div class="newsletter-top-rule"></div>
+        </div>
+
+        <h2 id="newsletterTitle" class="font-heading section-heading newsletter-title text-center">Stay in the
+          Conversation</h2>
+
+        <div class="newsletter-copy text-center">
+          <p id="newsletterIntro1" class="font-body body-copy about-strong">Occasional reflections on leadership,
+            responsibility, influence, and the discipline of sustainable success.</p>
+          <p id="newsletterIntro2" class="font-body body-copy">Thoughtful notes for leaders who are interested in the
+            practice of stewardship.</p>
+        </div>
+
+        <form id="newsletterForm" class="newsletter-form">
+          <div class="newsletter-field-wrap">
+            <label for="emailInput" id="emailLabel" class="font-heading newsletter-label">Email address</label>
+            <input type="email" id="emailInput" placeholder="your@email.com" required>
+          </div>
+          <button type="submit" id="newsletterBtn" class="btn-primary newsletter-btn">Subscribe</button>
+        </form>
+
+        <p id="newsletterReassurance" class="font-body newsletter-reassurance">Thoughtful notes. No noise.</p>
+
+        <div id="successMessage" class="message-box success-message" style="display: none;">
+          <p class="font-body">Thank you. You're now in the conversation.</p>
+        </div>
+
+        <div id="errorMessage" class="message-box error-message" style="display: none;">
+          <p class="font-body" id="errorText">Please enter a valid email.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer class="site-footer">
+      <div class="container-shell">
+        <div class="footer-grid grid">
+          <div class="footer-brand-col">
+            <div>
+              <h3 id="footerBrandName" class="font-heading footer-brand-name">Ola Kelly</h3>
+              <p id="footerTagline" class="font-body footer-tagline">Leadership is stewardship.</p>
+            </div>
+            <p id="footerDescription" class="font-body footer-description">
+              Thoughtful leadership ideas exploring the stewardship of influence, responsibility, and decision-making.
+            </p>
+          </div>
+
+          <div class="footer-link-col">
+            <h4 class="footer-col-title">Navigation</h4>
+            <nav class="footer-nav" aria-label="Footer navigation">
+              <a href="#home" class="footer-link">Home</a>
+              <a href="#ideas" class="footer-link">Ideas</a>
+              <a href="#framework" class="footer-link">STEWARD Framework</a>
+              <a href="#about" class="footer-link">About</a>
+              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" class="footer-link">LinkedIn</a>
+            </nav>
+          </div>
+
+          <div class="footer-link-col">
+            <h4 class="footer-col-title">Legal</h4>
+            <nav class="footer-nav" aria-label="Legal links">
+              <a href="#" class="footer-link">Privacy Policy</a>
+              <a href="#" class="footer-link">Terms of Use</a>
+              <a href="#" class="footer-link">Disclaimer</a>
+              <a href="#" class="footer-link">Cookie Policy</a>
+            </nav>
+          </div>
+        </div>
+
+        <div class="footer-divider"></div>
+
+        <div class="footer-bottom text-center">
+          <p class="font-body footer-copyright">© 2026 Ola Kelly. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="/scripts/main.js"></script>
+</body>
+
+</html>
