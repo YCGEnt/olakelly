@@ -646,12 +646,18 @@ function initEventListeners() {
 }
 
 function loadThemePreference() {
-  if (localStorage.getItem("darkMode") === "true") {
-    htmlElement.classList.add("dark-mode");
-    bodyElement.classList.add("dark-mode");
-    themeToggle?.classList.add("dark");
-    mobileThemeToggle?.classList.add("dark");
+  if (localStorage.getItem("darkMode") === "false") {
+    htmlElement.classList.remove("dark-mode");
+    bodyElement.classList.remove("dark-mode");
+    themeToggle?.classList.remove("dark");
+    mobileThemeToggle?.classList.remove("dark");
+    return;
   }
+
+  htmlElement.classList.add("dark-mode");
+  bodyElement.classList.add("dark-mode");
+  themeToggle?.classList.add("dark");
+  mobileThemeToggle?.classList.add("dark");
 }
 
 function init() {
