@@ -721,10 +721,9 @@ body {
 }
 
 .framework-direction-marker {
-  fill: none;
+  fill: rgba(212, 175, 55, 0.88);
   stroke: none;
   stroke-width: 0;
-  stroke-linecap: round;
   opacity: 0;
   transform-origin: 450px 450px;
   transform-box: fill-box;

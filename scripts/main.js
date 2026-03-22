@@ -282,22 +282,12 @@ function renderDirectionMarkers() {
     const radians = (normalizedAngle * Math.PI) / 180;
     const markerX = center + markerRadius * Math.cos(radians);
     const markerY = center + markerRadius * Math.sin(radians);
-    const tangentX = Math.cos(radians + Math.PI / 2);
-    const tangentY = Math.sin(radians + Math.PI / 2);
-    const normalX = Math.cos(radians);
-    const normalY = Math.sin(radians);
-
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    const startX = markerX - tangentX * 18 - normalX * 3.5;
-    const startY = markerY - tangentY * 18 - normalY * 3.5;
-    const midX = markerX + tangentX * 3;
-    const midY = markerY + tangentY * 3;
-    const endX = markerX + tangentX * 18 - normalX * 3.5;
-    const endY = markerY + tangentY * 18 - normalY * 3.5;
 
-    path.setAttribute("d", `M ${startX} ${startY} Q ${midX} ${midY} ${endX} ${endY}`);
+    // Standalone arrowhead resting on the circle, rotated tangent to clockwise flow.
+    path.setAttribute("d", "M -6 -4 L 7 0 L -6 4 z");
     path.setAttribute("class", "framework-direction-marker");
-    path.setAttribute("marker-end", "url(#frameworkDirectionArrowhead)");
+    path.setAttribute("transform", `translate(${markerX} ${markerY}) rotate(${normalizedAngle + 90})`);
     frameworkDirectionMarkers.appendChild(path);
   });
 }
