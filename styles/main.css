@@ -519,8 +519,8 @@ body {
   line-height: 1.55;
 }
 
-.steward-framework-hero .trigger-cta-block {
-  margin-top: 40px;
+.framework-section .trigger-cta-block {
+  margin: 0 auto 48px;
 }
 
 .section-heading {
