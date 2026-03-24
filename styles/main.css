@@ -2506,9 +2506,15 @@ input:focus-visible,
   margin-bottom: 0;
 }
 
-.admin-stats-stack {
+.admin-stats-meta {
   display: grid;
   grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.admin-stats-inline {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 
@@ -2542,7 +2548,7 @@ input:focus-visible,
   font-size: 15px;
 }
 
-.admin-stats-stack .admin-stat strong {
+.admin-stats-meta > .admin-stat strong {
   display: block;
   overflow-wrap: anywhere;
   word-break: break-word;
@@ -3103,6 +3109,10 @@ html.dark-mode .framework-step-button.is-active {
   .admin-load-grid {
     grid-template-columns: 1fr;
     align-items: stretch;
+  }
+
+  .admin-stats-inline {
+    grid-template-columns: 1fr;
   }
 
   .admin-sidebar-panel {
