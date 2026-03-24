@@ -2234,6 +2234,13 @@ input:focus-visible,
   gap: 6px;
 }
 
+.admin-editor-form {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.32fr) minmax(0, 0.68fr);
+  gap: 24px;
+  align-items: start;
+}
+
 .admin-form-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
@@ -2284,7 +2291,9 @@ input:focus-visible,
 }
 
 .admin-editor-textarea {
-  min-height: 360px;
+  min-height: 620px;
+  line-height: 1.75;
+  overflow-y: auto;
 }
 
 .admin-hint {
@@ -2314,14 +2323,50 @@ input:focus-visible,
 }
 
 .admin-editor-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
-  gap: 22px;
+  display: block;
 }
 
 .admin-editor-panel,
 .admin-preview-panel {
   padding: 30px;
+}
+
+.admin-sidebar-panel {
+  display: grid;
+  gap: 18px;
+  position: sticky;
+  top: 28px;
+}
+
+.admin-section-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.admin-section-stack {
+  display: grid;
+  gap: 18px;
+}
+
+.admin-editor-main {
+  display: grid;
+  gap: 18px;
+}
+
+.admin-writing-panel {
+  display: grid;
+  gap: 22px;
+}
+
+.admin-writing-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.admin-content-field {
+  gap: 12px;
 }
 
 .admin-panel-head {
@@ -2333,6 +2378,10 @@ input:focus-visible,
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
   margin-bottom: 18px;
+}
+
+.admin-stats-row-compact {
+  margin-bottom: 0;
 }
 
 .admin-stat {
@@ -2364,6 +2413,46 @@ input:focus-visible,
   border: 1px solid rgba(5, 10, 48, 0.08);
   border-radius: 24px;
   background: #fff;
+}
+
+.admin-toggle-group {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-disclosure {
+  padding-top: 20px;
+}
+
+.admin-disclosure-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  list-style: none;
+}
+
+.admin-disclosure-summary::-webkit-details-marker {
+  display: none;
+}
+
+.admin-disclosure-summary::after {
+  content: "+";
+  color: rgba(5, 10, 48, 0.5);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.admin-disclosure[open] .admin-disclosure-summary::after {
+  content: "\2212";
+}
+
+.admin-disclosure .admin-kicker {
+  margin-bottom: 0;
+}
+
+.admin-disclosure-body {
+  margin-top: 16px;
 }
 
 .admin-message {
@@ -2407,7 +2496,8 @@ html.dark-mode .ideas-tag,
 html.dark-mode .admin-login-panel,
 html.dark-mode .admin-editor-panel,
 html.dark-mode .admin-preview-panel,
-html.dark-mode .admin-stat {
+html.dark-mode .admin-stat,
+html.dark-mode .admin-disclosure {
   background: rgba(255, 255, 255, 0.05);
   border-color: rgba(251, 246, 242, 0.12);
   box-shadow: none;
@@ -2422,6 +2512,10 @@ html.dark-mode .admin-kicker,
 html.dark-mode .admin-message,
 html.dark-mode .admin-toggle {
   color: rgba(251, 246, 242, 0.64);
+}
+
+html.dark-mode .admin-disclosure-summary::after {
+  color: rgba(251, 246, 242, 0.54);
 }
 
 html.dark-mode .footer-linkedin-link {
@@ -2786,6 +2880,19 @@ html.dark-mode .framework-step-button.is-active {
   .admin-utility-bar {
     margin-bottom: 18px;
   }
+
+  .admin-editor-form {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-sidebar-panel {
+    position: static;
+    order: 2;
+  }
+
+  .admin-editor-main {
+    order: 1;
+  }
 }
 
 @media (max-width: 768px) {
@@ -2978,6 +3085,21 @@ html.dark-mode .framework-step-button.is-active {
     grid-template-columns: 1fr;
   }
 
+  .admin-writing-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-action-row {
+    width: 100%;
+  }
+
+  .admin-action-row .btn-primary,
+  .admin-action-row .btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+
   .admin-utility-bar {
     justify-content: flex-start;
     margin-bottom: 16px;
@@ -2991,6 +3113,10 @@ html.dark-mode .framework-step-button.is-active {
 
   .admin-preview-frame {
     min-height: 720px;
+  }
+
+  .admin-editor-textarea {
+    min-height: 460px;
   }
 
   .ideas-post-meta {

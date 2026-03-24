@@ -1,4 +1,8 @@
 (function () {
+  if (window.lucide?.createIcons) {
+    window.lucide.createIcons();
+  }
+
   const loginForm = document.getElementById("adminLoginForm");
   const loginPanel = document.getElementById("adminLoginPanel");
   const loginMessage = document.getElementById("adminLoginMessage");
@@ -13,6 +17,8 @@
   const titleInput = document.getElementById("postTitle");
   const slugInput = document.getElementById("postSlug");
   const originalSlugInput = document.getElementById("originalSlug");
+  const statusInput = document.getElementById("postStatus");
+  const savePostBtn = document.getElementById("savePostBtn");
   const adminThemeToggle = document.getElementById("adminThemeToggle");
   const htmlElement = document.documentElement;
   const bodyElement = document.body;
@@ -39,10 +45,6 @@
     const isDarkMode = htmlElement.classList.contains("dark-mode");
     adminThemeToggle.classList.toggle("dark", isDarkMode);
     adminThemeToggle.setAttribute("aria-label", isDarkMode ? "Switch to light mode" : "Switch to dark mode");
-    const label = adminThemeToggle.querySelector(".admin-theme-toggle-label");
-    if (label) {
-      label.textContent = isDarkMode ? "Light Mode" : "Dark Mode";
-    }
   }
 
   function setTheme(isDarkMode) {
@@ -59,6 +61,11 @@
   function loadThemePreference() {
     const storedPreference = localStorage.getItem("darkMode");
     setTheme(storedPreference !== "false");
+  }
+
+  function syncSaveButtonLabel() {
+    if (!savePostBtn || !statusInput) return;
+    savePostBtn.textContent = statusInput.value === "published" ? "Publish" : "Save Draft";
   }
 
   function readFileAsDataUrl(file) {
@@ -88,6 +95,8 @@
       excerpt: String(formData.get("excerpt") || "").trim(),
       intent: String(formData.get("intent") || "").trim(),
       featured: formData.get("featured") === "on",
+      homepage_featured: formData.get("homepage_featured") === "on",
+      homepage_order: String(formData.get("homepage_order") || "").trim(),
       status: String(formData.get("status") || "draft"),
       date: String(formData.get("date") || "").trim(),
       show_date: formData.get("show_date") === "on",
@@ -141,6 +150,7 @@
   });
 
   adminThemeToggle?.addEventListener("click", toggleTheme);
+  statusInput?.addEventListener("change", syncSaveButtonLabel);
 
   previewButton?.addEventListener("click", async () => {
     setMessage(editorMessage, "");
@@ -183,4 +193,5 @@
   });
 
   loadThemePreference();
+  syncSaveButtonLabel();
 })();
