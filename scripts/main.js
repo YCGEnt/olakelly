@@ -104,6 +104,7 @@ const errorText = document.getElementById("errorText");
 const newsletterBtn = document.getElementById("newsletterBtn");
 
 const primaryCtaBtn = document.getElementById("primaryCtaBtn");
+const latestIdeasGrid = document.getElementById("latestIdeasGrid");
 
 const newsletterEndpoint = "";
 const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -649,6 +650,48 @@ function loadThemePreference() {
   mobileThemeToggle?.classList.add("dark");
 }
 
+function formatIdeaDate(dateString) {
+  if (!dateString) return "";
+  return new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric"
+  }).format(new Date(dateString));
+}
+
+function renderLatestIdeas(posts) {
+  if (!latestIdeasGrid) return;
+
+  latestIdeasGrid.innerHTML = posts
+    .map((post, index) => `
+      <article class="article-card ideas-rise flex flex-col" style="animation-delay: ${0.08 + index * 0.1}s;">
+        <p class="ideas-card-category">${post.category}</p>
+        <h3 class="font-heading article-title">${post.title}</h3>
+        <p class="font-body body-copy article-excerpt">${post.excerpt}</p>
+        <div class="ideas-card-footer">
+          <p class="ideas-card-date">${formatIdeaDate(post.date)}</p>
+          <a href="${post.url}" class="read-more-link cta-link">Read More</a>
+        </div>
+      </article>
+    `)
+    .join("");
+}
+
+async function initLatestIdeas() {
+  if (!latestIdeasGrid) return;
+
+  try {
+    const response = await fetch("data/latest-posts.json", { headers: { Accept: "application/json" } });
+    if (!response.ok) return;
+    const data = await response.json();
+    const posts = Array.isArray(data.posts) ? data.posts.slice(0, 3) : [];
+    if (posts.length === 0) return;
+    renderLatestIdeas(posts);
+  } catch (_error) {
+    // Keep the loading card if the data file is unavailable.
+  }
+}
+
 function init() {
   loadThemePreference();
   initHeroRotator();
@@ -657,6 +700,7 @@ function init() {
   initTimelineReveal();
   initScrollEffects();
   initEventListeners();
+  void initLatestIdeas();
 }
 
 if (document.readyState === "loading") {

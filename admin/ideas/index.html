@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full dark-mode">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ideas Admin | Ola Kelly</title>
+
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Allura&family=Lato:wght@300;400;700&family=Playfair+Display:wght@600;700&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles/main.css?v=20260323a">
+</head>
+<body class="h-full dark-mode">
+  <main class="admin-main">
+    <section class="admin-shell">
+      <div class="admin-login-panel" id="adminLoginPanel">
+        <p class="admin-kicker">Private Publishing</p>
+        <h1 class="font-heading admin-title">Ideas Admin</h1>
+        <p class="font-body admin-copy">This editor writes markdown to the Git-backed content system and previews the exact live article template before publish.</p>
+        <form id="adminLoginForm" class="admin-form">
+          <label class="admin-label" for="adminPassword">Password</label>
+          <input id="adminPassword" name="password" type="password" class="admin-input" autocomplete="current-password" required>
+          <p class="admin-hint">Private admin access</p>
+          <button type="submit" class="btn-primary">Enter Admin</button>
+        </form>
+        <p id="adminLoginMessage" class="admin-message" aria-live="polite"></p>
+      </div>
+
+      <div class="admin-editor-shell is-hidden" id="adminEditorShell">
+        <div class="admin-editor-grid">
+          <section class="admin-editor-panel">
+            <div class="admin-panel-head">
+              <p class="admin-kicker">Draft or Publish</p>
+              <h2 class="font-heading admin-panel-title">New Idea</h2>
+            </div>
+
+            <form id="ideasAdminForm" class="admin-form admin-form-grid">
+              <label class="admin-field">
+                <span class="admin-label">Title</span>
+                <input class="admin-input" type="text" name="title" id="postTitle" required>
+              </label>
+
+              <label class="admin-field">
+                <span class="admin-label">Subtitle</span>
+                <input class="admin-input" type="text" name="subtitle">
+              </label>
+
+              <label class="admin-field">
+                <span class="admin-label">Slug</span>
+                <input class="admin-input" type="text" name="slug" id="postSlug">
+              </label>
+
+              <label class="admin-field">
+                <span class="admin-label">Category</span>
+                <input class="admin-input" type="text" name="category" value="STEWARD Framework" required>
+              </label>
+
+              <label class="admin-field">
+                <span class="admin-label">Tags</span>
+                <input class="admin-input" type="text" name="tags" placeholder="Stewardship, Leadership, Capacity">
+              </label>
+
+              <label class="admin-field admin-field-full">
+                <span class="admin-label">Excerpt</span>
+                <textarea class="admin-textarea admin-textarea-sm" name="excerpt" maxlength="200" required></textarea>
+                <span class="admin-hint">Target 160 to 200 characters.</span>
+              </label>
+
+              <label class="admin-field admin-field-full">
+                <span class="admin-label">Intent</span>
+                <input class="admin-input" type="text" name="intent" placeholder="Define: what 'done' actually means in stewardship">
+                <span class="admin-hint">Suggested pattern: Explore, Define, or Apply.</span>
+              </label>
+
+              <div class="admin-toggle-row admin-field-full">
+                <label class="admin-toggle"><input type="checkbox" name="featured"> <span>Featured</span></label>
+                <label class="admin-toggle"><input type="checkbox" name="show_date" checked> <span>Show publish date</span></label>
+                <label class="admin-toggle"><input type="checkbox" name="show_updated_date"> <span>Show updated date</span></label>
+              </div>
+
+              <label class="admin-field">
+                <span class="admin-label">Status</span>
+                <select class="admin-input" name="status">
+                  <option value="draft">Draft</option>
+                  <option value="published">Published</option>
+                </select>
+              </label>
+
+              <label class="admin-field">
+                <span class="admin-label">Publish date</span>
+                <input class="admin-input" type="date" name="date">
+              </label>
+
+              <label class="admin-field admin-field-full">
+                <span class="admin-label">SEO title</span>
+                <input class="admin-input" type="text" name="seo_title">
+              </label>
+
+              <label class="admin-field admin-field-full">
+                <span class="admin-label">SEO description</span>
+                <textarea class="admin-textarea admin-textarea-sm" name="seo_description"></textarea>
+              </label>
+
+              <label class="admin-field admin-field-full">
+                <span class="admin-label">Canonical URL</span>
+                <input class="admin-input" type="url" name="canonical_url">
+              </label>
+
+              <label class="admin-field">
+                <span class="admin-label">Cover image</span>
+                <input class="admin-input admin-file-input" type="file" name="cover_image_file" accept="image/png,image/jpeg,image/webp,image/gif">
+              </label>
+
+              <label class="admin-field">
+                <span class="admin-label">Cover image alt</span>
+                <input class="admin-input" type="text" name="cover_image_alt">
+              </label>
+
+              <label class="admin-field admin-field-full">
+                <span class="admin-label">Content</span>
+                <textarea class="admin-textarea admin-editor-textarea" name="content" required></textarea>
+              </label>
+
+              <input type="hidden" name="original_slug" id="originalSlug">
+
+              <div class="admin-action-row admin-field-full">
+                <button type="button" class="btn-secondary" id="previewPostBtn">Preview</button>
+                <button type="submit" class="btn-primary">Save Post</button>
+              </div>
+            </form>
+            <p id="adminEditorMessage" class="admin-message" aria-live="polite"></p>
+          </section>
+
+          <section class="admin-preview-panel">
+            <div class="admin-panel-head">
+              <p class="admin-kicker">Live Template Preview</p>
+              <h2 class="font-heading admin-panel-title">Exact Site Render</h2>
+            </div>
+            <div class="admin-stats-row">
+              <div class="admin-stat"><span>Slug</span><strong id="previewSlug">-</strong></div>
+              <div class="admin-stat"><span>Read time</span><strong id="previewReadTime">-</strong></div>
+              <div class="admin-stat"><span>Word count</span><strong id="previewWordCount">-</strong></div>
+            </div>
+            <iframe id="previewFrame" class="admin-preview-frame" title="Live site preview"></iframe>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="../../scripts/admin-ideas.js?v=20260323a"></script>
+</body>
+</html>
