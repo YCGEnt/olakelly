@@ -2158,6 +2158,33 @@ input:focus-visible,
   margin: 0 auto;
 }
 
+.admin-utility-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 22px;
+}
+
+.admin-theme-toggle {
+  min-height: 46px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(5, 10, 48, 0.12);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--color-cosmic-void);
+  font-family: "Raleway", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.admin-theme-toggle:hover,
+.admin-theme-toggle:focus-visible {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.88);
+}
+
 .admin-login-panel,
 .admin-editor-panel,
 .admin-preview-panel {
@@ -2396,7 +2423,8 @@ html.dark-mode .ideas-kicker,
 html.dark-mode .ideas-card-date,
 html.dark-mode .ideas-post-meta-item,
 html.dark-mode .admin-kicker,
-html.dark-mode .admin-message {
+html.dark-mode .admin-message,
+html.dark-mode .admin-toggle {
   color: rgba(251, 246, 242, 0.64);
 }
 
@@ -2423,6 +2451,34 @@ html.dark-mode .admin-textarea {
   color: var(--color-silver-bird);
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(251, 246, 242, 0.14);
+}
+
+html.dark-mode .admin-input::placeholder,
+html.dark-mode .admin-textarea::placeholder {
+  color: rgba(251, 246, 242, 0.34);
+}
+
+html.dark-mode .admin-theme-toggle {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(251, 246, 242, 0.14);
+  color: rgba(251, 246, 242, 0.84);
+}
+
+html.dark-mode .admin-theme-toggle:hover,
+html.dark-mode .admin-theme-toggle:focus-visible {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+html.dark-mode .admin-main {
+  background:
+    radial-gradient(circle at top left, rgba(212, 175, 55, 0.08), transparent 28%),
+    radial-gradient(circle at right top, rgba(255, 255, 255, 0.04), transparent 26%),
+    linear-gradient(180deg, #0c1237 0%, #0a102f 100%);
+}
+
+html.dark-mode .admin-preview-frame {
+  border-color: rgba(251, 246, 242, 0.12);
+  background: rgba(12, 18, 55, 0.82);
 }
 
 .animate-rise,
@@ -2741,6 +2797,10 @@ html.dark-mode .framework-step-button.is-active {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     max-width: none;
   }
+
+  .admin-utility-bar {
+    margin-bottom: 18px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -2933,10 +2993,21 @@ html.dark-mode .framework-step-button.is-active {
     grid-template-columns: 1fr;
   }
 
+  .admin-utility-bar {
+    justify-content: flex-start;
+    margin-bottom: 16px;
+  }
+
   .admin-login-panel,
   .admin-editor-panel,
   .admin-preview-panel {
     padding: 24px;
+  }
+
+  .admin-theme-toggle {
+    min-height: 42px;
+    padding: 0 16px;
+    letter-spacing: 0.14em;
   }
 
   .admin-preview-frame {

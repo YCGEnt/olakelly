@@ -13,6 +13,9 @@
   const titleInput = document.getElementById("postTitle");
   const slugInput = document.getElementById("postSlug");
   const originalSlugInput = document.getElementById("originalSlug");
+  const adminThemeToggle = document.getElementById("adminThemeToggle");
+  const htmlElement = document.documentElement;
+  const bodyElement = document.body;
 
   let slugManuallyEdited = false;
 
@@ -29,6 +32,33 @@
   function setMessage(target, message, isError) {
     target.textContent = message || "";
     target.classList.toggle("is-error", Boolean(isError));
+  }
+
+  function syncThemeToggle() {
+    if (!adminThemeToggle) return;
+    const isDarkMode = htmlElement.classList.contains("dark-mode");
+    adminThemeToggle.classList.toggle("dark", isDarkMode);
+    adminThemeToggle.setAttribute("aria-label", isDarkMode ? "Switch to light mode" : "Switch to dark mode");
+    const label = adminThemeToggle.querySelector(".admin-theme-toggle-label");
+    if (label) {
+      label.textContent = isDarkMode ? "Light Mode" : "Dark Mode";
+    }
+  }
+
+  function setTheme(isDarkMode) {
+    htmlElement.classList.toggle("dark-mode", isDarkMode);
+    bodyElement.classList.toggle("dark-mode", isDarkMode);
+    localStorage.setItem("darkMode", isDarkMode ? "true" : "false");
+    syncThemeToggle();
+  }
+
+  function toggleTheme() {
+    setTheme(!htmlElement.classList.contains("dark-mode"));
+  }
+
+  function loadThemePreference() {
+    const storedPreference = localStorage.getItem("darkMode");
+    setTheme(storedPreference !== "false");
   }
 
   function readFileAsDataUrl(file) {
@@ -110,6 +140,8 @@
     slugManuallyEdited = true;
   });
 
+  adminThemeToggle?.addEventListener("click", toggleTheme);
+
   previewButton?.addEventListener("click", async () => {
     setMessage(editorMessage, "");
     try {
@@ -149,4 +181,6 @@
       setMessage(editorMessage, error.message, true);
     }
   });
+
+  loadThemePreference();
 })();
