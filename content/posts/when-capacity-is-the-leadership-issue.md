@@ -6,9 +6,9 @@ slug: "when-capacity-is-the-leadership-issue"
 status: "published"
 featured: false
 homepage_featured: true
-homepage_order: 3
+homepage_order: 2
 date: "2026-02-24"
-updated: "2026-02-24T09:00:00.000Z"
+updated: "2026-03-24T16:55:55.224Z"
 category: "STEWARD Framework"
 category_slug: "steward-framework"
 tags:
