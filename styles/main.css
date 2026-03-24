@@ -2015,7 +2015,8 @@ input:focus-visible,
 }
 
 .ideas-post-meta {
-  margin-top: 26px;
+  margin-top: 20px;
+  margin-bottom: 34px;
 }
 
 .ideas-intent {
@@ -2939,6 +2940,11 @@ html.dark-mode .framework-step-button.is-active {
 
   .admin-preview-frame {
     min-height: 720px;
+  }
+
+  .ideas-post-meta {
+    margin-top: 18px;
+    margin-bottom: 28px;
   }
 }
 
