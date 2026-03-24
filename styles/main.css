@@ -2506,6 +2506,12 @@ input:focus-visible,
   margin-bottom: 0;
 }
 
+.admin-stats-stack {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
 .admin-publishing-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2534,6 +2540,12 @@ input:focus-visible,
 .admin-stat strong {
   color: var(--color-cosmic-void);
   font-size: 15px;
+}
+
+.admin-stats-stack .admin-stat strong {
+  display: block;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .admin-preview-frame {
