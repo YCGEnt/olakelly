@@ -1901,6 +1901,15 @@ input:focus-visible,
   padding: 18px 32px 110px;
 }
 
+.ideas-index-section-secondary {
+  padding-top: 0;
+}
+
+.ideas-section-head {
+  max-width: 780px;
+  margin: 0 0 32px;
+}
+
 .ideas-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
