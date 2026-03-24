@@ -2437,6 +2437,13 @@ input:focus-visible,
   margin-bottom: 18px;
 }
 
+.admin-preview-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
 .admin-label-row {
   display: flex;
   align-items: center;
@@ -2460,6 +2467,32 @@ input:focus-visible,
 .admin-inline-action:hover,
 .admin-inline-action:focus-visible {
   color: var(--color-cosmic-void);
+}
+
+.admin-preview-refresh {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid rgba(5, 10, 48, 0.12);
+  background: transparent;
+  color: rgba(5, 10, 48, 0.62);
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+
+.admin-preview-refresh:hover,
+.admin-preview-refresh:focus-visible {
+  color: var(--color-cosmic-void);
+  border-color: rgba(5, 10, 48, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.admin-preview-refresh svg {
+  width: 18px;
+  height: 18px;
 }
 
 .admin-stats-row {
@@ -2636,7 +2669,8 @@ html.dark-mode .admin-logout-link {
 }
 
 html.dark-mode .admin-editing-state,
-html.dark-mode .admin-inline-action {
+html.dark-mode .admin-inline-action,
+html.dark-mode .admin-preview-refresh {
   color: rgba(251, 246, 242, 0.56);
 }
 
@@ -2648,8 +2682,20 @@ html.dark-mode .admin-input[type="date"] {
 }
 
 html.dark-mode .admin-inline-action:hover,
-html.dark-mode .admin-inline-action:focus-visible {
+html.dark-mode .admin-inline-action:focus-visible,
+html.dark-mode .admin-preview-refresh:hover,
+html.dark-mode .admin-preview-refresh:focus-visible {
   color: rgba(251, 246, 242, 0.84);
+}
+
+html.dark-mode .admin-preview-refresh {
+  border-color: rgba(251, 246, 242, 0.12);
+}
+
+html.dark-mode .admin-preview-refresh:hover,
+html.dark-mode .admin-preview-refresh:focus-visible {
+  border-color: rgba(251, 246, 242, 0.2);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 html.dark-mode .admin-disclosure-summary::after {
@@ -3255,6 +3301,10 @@ html.dark-mode .framework-step-button.is-active {
   .admin-writing-head {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .admin-preview-head {
+    align-items: center;
   }
 
   .admin-action-row {

@@ -224,7 +224,6 @@
 
                   <div class="admin-action-row">
                     <span class="admin-save-status" id="saveStatus" aria-live="polite"></span>
-                    <button type="button" class="btn-secondary" id="previewPostBtn">Preview</button>
                     <button type="submit" class="btn-primary" id="savePostBtn">Save Draft</button>
                   </div>
                 </div>
@@ -236,9 +235,14 @@
               </div>
 
               <section class="admin-preview-panel">
-                <div class="admin-panel-head">
-                  <p class="admin-kicker">Live Template Preview</p>
-                  <h2 class="font-heading admin-panel-title">Live Preview</h2>
+                <div class="admin-panel-head admin-preview-head">
+                  <div>
+                    <p class="admin-kicker">Live Template Preview</p>
+                    <h2 class="font-heading admin-panel-title">Live Preview</h2>
+                  </div>
+                  <button type="button" class="admin-preview-refresh" id="previewPostBtn" aria-label="Refresh preview">
+                    <i data-lucide="refresh-cw"></i>
+                  </button>
                 </div>
                 <div class="admin-preview-placeholder" id="previewPlaceholder">Preview will appear here as you write</div>
                 <iframe id="previewFrame" class="admin-preview-frame is-hidden" title="Live site preview"></iframe>
