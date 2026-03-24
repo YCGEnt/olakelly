@@ -2693,6 +2693,11 @@ html.dark-mode .admin-input:disabled {
   background: rgba(255, 255, 255, 0.03);
 }
 
+html.dark-mode .admin-input option {
+  color: var(--color-silver-bird);
+  background: #1b2148;
+}
+
 html.dark-mode .admin-main {
   background:
     radial-gradient(circle at top left, rgba(212, 175, 55, 0.08), transparent 28%),
