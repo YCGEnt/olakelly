@@ -5,6 +5,7 @@ subtitle: "A draft for weighing symbolic roles against actual stewardship."
 slug: "before-you-accept-the-board-seat"
 status: "draft"
 featured: false
+homepage_featured: false
 date: "2026-03-20"
 updated: "2026-03-20T09:00:00.000Z"
 category: "STEWARD Framework"

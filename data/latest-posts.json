@@ -3,33 +3,24 @@
   "posts": [
     {
       "category": "STEWARD Framework",
-      "category_slug": "steward-framework",
       "title": "What 'Done' Actually Means in Stewardship",
       "excerpt": "In stewardship, done is not the moment work looks impressive. It is the moment responsibility has been carried to a faithful, sustainable finish.",
       "url": "/ideas/what-done-actually-means-in-stewardship/",
-      "date": "2026-03-12T00:00:00.000Z",
-      "reading_time": 2,
-      "word_count": 261
+      "date": "2026-03-12T00:00:00.000Z"
     },
     {
       "category": "STEWARD Framework",
-      "category_slug": "steward-framework",
       "title": "The Cost of a Quick Yes",
       "excerpt": "A fast yes can feel responsive, generous, and strategic. It can also conceal the trade-offs you have not yet named.",
       "url": "/ideas/the-cost-of-a-quick-yes/",
-      "date": "2026-03-05T00:00:00.000Z",
-      "reading_time": 1,
-      "word_count": 218
+      "date": "2026-03-05T00:00:00.000Z"
     },
     {
       "category": "STEWARD Framework",
-      "category_slug": "steward-framework",
       "title": "When Capacity Is the Leadership Issue",
       "excerpt": "Leadership problems are not always failures of vision. Sometimes the issue is capacity that has been stretched past what careful stewardship can sustain.",
       "url": "/ideas/when-capacity-is-the-leadership-issue/",
-      "date": "2026-02-24T00:00:00.000Z",
-      "reading_time": 2,
-      "word_count": 228
+      "date": "2026-02-24T00:00:00.000Z"
     }
   ]
 }

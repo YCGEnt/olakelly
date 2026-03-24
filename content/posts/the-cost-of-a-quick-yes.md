@@ -5,6 +5,8 @@ subtitle: "Why speed can feel generous while quietly borrowing from tomorrow."
 slug: "the-cost-of-a-quick-yes"
 status: "published"
 featured: false
+homepage_featured: true
+homepage_order: 2
 date: "2026-03-05"
 updated: "2026-03-05T09:00:00.000Z"
 category: "STEWARD Framework"

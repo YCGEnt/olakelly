@@ -5,6 +5,8 @@ subtitle: "Sometimes the real problem is not clarity or conviction, but carrying
 slug: "when-capacity-is-the-leadership-issue"
 status: "published"
 featured: false
+homepage_featured: true
+homepage_order: 3
 date: "2026-02-24"
 updated: "2026-02-24T09:00:00.000Z"
 category: "STEWARD Framework"

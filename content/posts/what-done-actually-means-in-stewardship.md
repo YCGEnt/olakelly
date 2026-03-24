@@ -5,6 +5,8 @@ subtitle: "Why faithful completion matters more than visible activity."
 slug: "what-done-actually-means-in-stewardship"
 status: "published"
 featured: true
+homepage_featured: true
+homepage_order: 1
 date: "2026-03-12"
 updated: "2026-03-12T09:00:00.000Z"
 category: "STEWARD Framework"
