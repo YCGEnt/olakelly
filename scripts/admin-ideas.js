@@ -10,6 +10,7 @@
   const editorForm = document.getElementById("ideasAdminForm");
   const editorMessage = document.getElementById("adminEditorMessage");
   const previewButton = document.getElementById("previewPostBtn");
+  const logoutButton = document.getElementById("adminLogoutBtn");
   const previewFrame = document.getElementById("previewFrame");
   const previewSlug = document.getElementById("previewSlug");
   const previewReadTime = document.getElementById("previewReadTime");
@@ -19,6 +20,8 @@
   const originalSlugInput = document.getElementById("originalSlug");
   const statusInput = document.getElementById("postStatus");
   const savePostBtn = document.getElementById("savePostBtn");
+  const homepageFeaturedInput = document.querySelector('input[name="homepage_featured"]');
+  const homepageOrderInput = document.getElementById("homepageOrderInput");
   const adminThemeToggle = document.getElementById("adminThemeToggle");
   const htmlElement = document.documentElement;
   const bodyElement = document.body;
@@ -66,6 +69,21 @@
   function syncSaveButtonLabel() {
     if (!savePostBtn || !statusInput) return;
     savePostBtn.textContent = statusInput.value === "published" ? "Publish" : "Save Draft";
+  }
+
+  function syncHomepageOrderState() {
+    if (!homepageFeaturedInput || !homepageOrderInput) return;
+    const isEnabled = homepageFeaturedInput.checked;
+    homepageOrderInput.disabled = !isEnabled;
+    if (!isEnabled) {
+      homepageOrderInput.value = "";
+    }
+  }
+
+  function setEditorAuthenticated(isAuthenticated) {
+    logoutButton?.classList.toggle("is-hidden", !isAuthenticated);
+    loginPanel?.classList.toggle("is-hidden", isAuthenticated);
+    editorShell?.classList.toggle("is-hidden", !isAuthenticated);
   }
 
   function readFileAsDataUrl(file) {
@@ -132,8 +150,7 @@
     try {
       await requestJson("/api/admin/login", { password });
       setMessage(loginMessage, "");
-      loginPanel.classList.add("is-hidden");
-      editorShell.classList.remove("is-hidden");
+      setEditorAuthenticated(true);
     } catch (error) {
       setMessage(loginMessage, error.message, true);
     }
@@ -151,6 +168,15 @@
 
   adminThemeToggle?.addEventListener("click", toggleTheme);
   statusInput?.addEventListener("change", syncSaveButtonLabel);
+  homepageFeaturedInput?.addEventListener("change", syncHomepageOrderState);
+  logoutButton?.addEventListener("click", async () => {
+    try {
+      await requestJson("/api/admin/logout", {});
+    } catch (_error) {
+      // Redirect regardless so the user lands back on the login screen.
+    }
+    window.location.href = "/admin/ideas/";
+  });
 
   previewButton?.addEventListener("click", async () => {
     setMessage(editorMessage, "");
@@ -194,4 +220,6 @@
 
   loadThemePreference();
   syncSaveButtonLabel();
+  syncHomepageOrderState();
+  setEditorAuthenticated(false);
 })();

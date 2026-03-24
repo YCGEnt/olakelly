@@ -16,6 +16,7 @@
   <main class="admin-main">
     <section class="admin-shell">
       <div class="admin-utility-bar">
+        <button type="button" class="admin-logout-link is-hidden" id="adminLogoutBtn">Logout</button>
         <button type="button" class="theme-toggle dark" id="adminThemeToggle" aria-label="Toggle dark mode">
           <i data-lucide="sun" class="sun-icon"></i>
           <i data-lucide="moon" class="moon-icon"></i>
@@ -107,18 +108,20 @@
                     <div class="admin-stat"><span>Word count</span><strong id="previewWordCount">-</strong></div>
                   </div>
 
-                  <label class="admin-field">
-                    <span class="admin-label">Status</span>
-                    <select class="admin-input" name="status" id="postStatus">
-                      <option value="draft">Draft</option>
-                      <option value="published">Published</option>
-                    </select>
-                  </label>
+                  <div class="admin-publishing-row">
+                    <label class="admin-field">
+                      <span class="admin-label">Status</span>
+                      <select class="admin-input" name="status" id="postStatus">
+                        <option value="draft">Draft</option>
+                        <option value="published">Published</option>
+                      </select>
+                    </label>
 
-                  <label class="admin-field">
-                    <span class="admin-label">Publish date</span>
-                    <input class="admin-input" type="date" name="date">
-                  </label>
+                    <label class="admin-field">
+                      <span class="admin-label">Publish date</span>
+                      <input class="admin-input" type="date" name="date">
+                    </label>
+                  </div>
 
                   <div class="admin-toggle-group">
                     <label class="admin-toggle"><input type="checkbox" name="show_date" checked> <span>Show publish date</span></label>
@@ -129,7 +132,7 @@
 
                   <label class="admin-field">
                     <span class="admin-label">Homepage order</span>
-                    <input class="admin-input" type="number" name="homepage_order" min="1" step="1" placeholder="Optional">
+                    <input class="admin-input" type="number" name="homepage_order" id="homepageOrderInput" min="1" step="1" placeholder="Optional" disabled>
                   </label>
                 </div>
               </section>
@@ -201,7 +204,7 @@
               <section class="admin-preview-panel">
                 <div class="admin-panel-head">
                   <p class="admin-kicker">Live Template Preview</p>
-                  <h2 class="font-heading admin-panel-title">Exact Site Render</h2>
+                  <h2 class="font-heading admin-panel-title">Live Preview</h2>
                 </div>
                 <iframe id="previewFrame" class="admin-preview-frame" title="Live site preview"></iframe>
               </section>
