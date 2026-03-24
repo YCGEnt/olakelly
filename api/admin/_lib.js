@@ -2,6 +2,7 @@
 
 const crypto = require("crypto");
 const path = require("path");
+const matter = require("gray-matter");
 const { computePost, renderPostPage, serializeFrontMatter } = require("../../lib/blog");
 
 const COOKIE_NAME = "ideas_admin_session";
@@ -187,7 +188,80 @@ function parseExistingSource(source) {
   const separator = "\n---\n";
   const secondIndex = source.indexOf(separator, 4);
   if (secondIndex === -1) return {};
-  return require("gray-matter")(source).data;
+  return matter(source).data;
+}
+
+function parsePostSource(source) {
+  const parsed = matter(String(source || ""));
+  const frontMatter = parsed.data || {};
+
+  return {
+    id: String(frontMatter.id || "").trim(),
+    title: String(frontMatter.title || "").trim(),
+    subtitle: String(frontMatter.subtitle || "").trim(),
+    slug: String(frontMatter.slug || "").trim(),
+    status: String(frontMatter.status || "draft").trim(),
+    featured: Boolean(frontMatter.featured),
+    homepage_featured: Boolean(frontMatter.homepage_featured),
+    homepage_order: Number.isFinite(Number(frontMatter.homepage_order)) ? Number(frontMatter.homepage_order) : null,
+    date: String(frontMatter.date || "").slice(0, 10),
+    updated: String(frontMatter.updated || "").trim(),
+    category: String(frontMatter.category || "").trim(),
+    category_slug: String(frontMatter.category_slug || "").trim(),
+    tags: Array.isArray(frontMatter.tags) ? frontMatter.tags : [],
+    excerpt: String(frontMatter.excerpt || "").trim(),
+    intent: String(frontMatter.intent || "").trim(),
+    seo_title: String(frontMatter.seo_title || "").trim(),
+    seo_description: String(frontMatter.seo_description || "").trim(),
+    canonical_url: String(frontMatter.canonical_url || "").trim(),
+    show_date: frontMatter.show_date !== false,
+    show_updated_date: Boolean(frontMatter.show_updated_date),
+    cover_image: String(frontMatter.cover_image || "").trim(),
+    cover_image_alt: String(frontMatter.cover_image_alt || "").trim(),
+    related_posts: Array.isArray(frontMatter.related_posts) ? frontMatter.related_posts : [],
+    content: String(parsed.content || "").trim()
+  };
+}
+
+async function listGitHubPostFiles() {
+  const response = await githubRequest("content/posts");
+  if (!Array.isArray(response)) return [];
+  return response
+    .filter((entry) => entry && entry.type === "file" && /\.md$/i.test(entry.name))
+    .map((entry) => ({
+      name: entry.name,
+      path: entry.path || `content/posts/${entry.name}`
+    }));
+}
+
+async function getPostSourceBySlug(slug) {
+  const normalizedSlug = String(slug || "").trim();
+  if (!normalizedSlug) return null;
+  const sourceFile = await getGitHubFile(`content/posts/${normalizedSlug}.md`);
+  if (!sourceFile) return null;
+  return parsePostSource(sourceFile.content);
+}
+
+async function getRecentPosts(limit = 5) {
+  const files = await listGitHubPostFiles();
+  const sources = await Promise.all(
+    files.map(async (file) => {
+      const sourceFile = await getGitHubFile(file.path);
+      if (!sourceFile) return null;
+      const post = parsePostSource(sourceFile.content);
+      return {
+        title: post.title,
+        slug: post.slug,
+        status: post.status,
+        date: post.date
+      };
+    })
+  );
+
+  return sources
+    .filter((post) => post && post.slug && post.title && post.date)
+    .sort((left, right) => new Date(right.date) - new Date(left.date))
+    .slice(0, limit);
 }
 
 async function updateRedirectsIfNeeded(originalSlug, nextSlug) {
@@ -299,6 +373,8 @@ module.exports = {
   COOKIE_NAME,
   SESSION_TTL_SECONDS,
   createSessionToken,
+  getPostSourceBySlug,
+  getRecentPosts,
   readJsonBody,
   renderPreviewHtml,
   requireSession,

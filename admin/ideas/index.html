@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Allura&family=Lato:wght@300;400;700&family=Playfair+Display:wght@600;700&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../../styles/main.css?v=20260324a">
+  <link rel="stylesheet" href="../../styles/main.css?v=20260324b">
 </head>
 <body class="h-full dark-mode">
   <main class="admin-main">
@@ -40,6 +40,32 @@
       </div>
 
       <div class="admin-editor-shell is-hidden" id="adminEditorShell">
+        <section class="admin-editor-panel admin-load-panel">
+          <div class="admin-panel-head">
+            <p class="admin-kicker">Edit Existing Idea</p>
+          </div>
+
+          <div class="admin-load-grid">
+            <label class="admin-field">
+              <span class="admin-label">Slug</span>
+              <input class="admin-input" type="text" id="existingPostSlug" placeholder="what-done-actually-means-in-stewardship">
+            </label>
+
+            <div class="admin-load-action">
+              <button type="button" class="btn-secondary" id="loadExistingPostBtn">Load</button>
+            </div>
+
+            <label class="admin-field admin-load-dropdown">
+              <span class="admin-label">Recent posts</span>
+              <select class="admin-input" id="recentPostsSelect">
+                <option value="">Select a recent post</option>
+              </select>
+            </label>
+          </div>
+
+          <p id="loadExistingPostMessage" class="admin-message admin-inline-message" aria-live="polite"></p>
+        </section>
+
         <div class="admin-editor-grid">
           <form id="ideasAdminForm" class="admin-editor-form">
             <aside class="admin-sidebar-panel">
@@ -60,7 +86,10 @@
                   </label>
 
                   <label class="admin-field">
-                    <span class="admin-label">Slug</span>
+                    <span class="admin-label-row">
+                      <span class="admin-label">Slug</span>
+                      <button type="button" class="admin-inline-action is-hidden" id="editSlugBtn">Edit slug</button>
+                    </span>
                     <input class="admin-input" type="text" name="slug" id="postSlug">
                   </label>
 
@@ -178,7 +207,10 @@
                 </div>
               </details>
 
+              <input type="hidden" name="id" id="postId">
               <input type="hidden" name="original_slug" id="originalSlug">
+              <input type="hidden" name="cover_image" id="coverImagePath">
+              <input type="hidden" name="related_posts" id="relatedPostsInput">
             </aside>
 
             <section class="admin-editor-main">
@@ -186,6 +218,7 @@
                 <div class="admin-writing-head">
                   <div class="admin-panel-head">
                     <p class="admin-kicker">Draft or Publish</p>
+                    <p class="admin-editing-state is-hidden" id="editingStateLabel"></p>
                     <h2 class="font-heading admin-panel-title" id="editorHeading">New Idea</h2>
                   </div>
 
@@ -219,6 +252,6 @@
     </section>
   </main>
 
-  <script src="../../scripts/admin-ideas.js?v=20260324a"></script>
+  <script src="../../scripts/admin-ideas.js?v=20260324b"></script>
 </body>
 </html>

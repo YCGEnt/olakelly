@@ -2363,6 +2363,31 @@ input:focus-visible,
   padding: 30px;
 }
 
+.admin-load-panel {
+  margin-bottom: 18px;
+}
+
+.admin-load-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) auto minmax(260px, 1fr);
+  gap: 16px;
+  align-items: end;
+}
+
+.admin-load-action {
+  display: flex;
+  align-items: flex-end;
+}
+
+.admin-load-dropdown {
+  min-width: 0;
+}
+
+.admin-inline-message {
+  margin-top: 12px;
+  min-height: 20px;
+}
+
 .admin-sidebar-panel {
   display: grid;
   gap: 18px;
@@ -2401,8 +2426,40 @@ input:focus-visible,
   gap: 12px;
 }
 
+.admin-editing-state {
+  margin: 0 0 8px;
+  color: rgba(5, 10, 48, 0.56);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .admin-panel-head {
   margin-bottom: 18px;
+}
+
+.admin-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-inline-action {
+  background: none;
+  border: none;
+  padding: 0;
+  color: rgba(5, 10, 48, 0.56);
+  font-family: "Raleway", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.admin-inline-action:hover,
+.admin-inline-action:focus-visible {
+  color: var(--color-cosmic-void);
 }
 
 .admin-stats-row {
@@ -2576,6 +2633,16 @@ html.dark-mode .admin-message,
 html.dark-mode .admin-toggle,
 html.dark-mode .admin-logout-link {
   color: rgba(251, 246, 242, 0.64);
+}
+
+html.dark-mode .admin-editing-state,
+html.dark-mode .admin-inline-action {
+  color: rgba(251, 246, 242, 0.56);
+}
+
+html.dark-mode .admin-inline-action:hover,
+html.dark-mode .admin-inline-action:focus-visible {
+  color: rgba(251, 246, 242, 0.84);
 }
 
 html.dark-mode .admin-disclosure-summary::after {
@@ -2961,6 +3028,11 @@ html.dark-mode .framework-step-button.is-active {
 
   .admin-editor-form {
     grid-template-columns: 1fr;
+  }
+
+  .admin-load-grid {
+    grid-template-columns: 1fr;
+    align-items: stretch;
   }
 
   .admin-sidebar-panel {
