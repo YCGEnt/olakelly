@@ -45,6 +45,12 @@ py -m http.server 8000
 
 This project uses Vercel's built-in Git integration.
 
+### Vercel settings
+
+- Framework Preset: `Other`
+- Build Command: `npm run build`
+- Output Directory: `.`
+
 ### Branch workflow
 
 - `staging` is the deployment branch
