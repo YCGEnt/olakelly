@@ -186,10 +186,11 @@
                 <div class="admin-writing-head">
                   <div class="admin-panel-head">
                     <p class="admin-kicker">Draft or Publish</p>
-                    <h2 class="font-heading admin-panel-title">New Idea</h2>
+                    <h2 class="font-heading admin-panel-title" id="editorHeading">New Idea</h2>
                   </div>
 
                   <div class="admin-action-row">
+                    <span class="admin-save-status" id="saveStatus" aria-live="polite"></span>
                     <button type="button" class="btn-secondary" id="previewPostBtn">Preview</button>
                     <button type="submit" class="btn-primary" id="savePostBtn">Save Draft</button>
                   </div>
@@ -206,7 +207,8 @@
                   <p class="admin-kicker">Live Template Preview</p>
                   <h2 class="font-heading admin-panel-title">Live Preview</h2>
                 </div>
-                <iframe id="previewFrame" class="admin-preview-frame" title="Live site preview"></iframe>
+                <div class="admin-preview-placeholder" id="previewPlaceholder">Preview will appear here as you write</div>
+                <iframe id="previewFrame" class="admin-preview-frame is-hidden" title="Live site preview"></iframe>
               </section>
 
               <p id="adminEditorMessage" class="admin-message" aria-live="polite"></p>

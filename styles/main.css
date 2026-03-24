@@ -2162,7 +2162,7 @@ input:focus-visible,
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   margin-bottom: 22px;
 }
 
@@ -2351,6 +2351,7 @@ input:focus-visible,
   display: flex;
   flex-wrap: wrap;
   gap: 14px;
+  align-items: center;
 }
 
 .admin-editor-grid {
@@ -2419,7 +2420,7 @@ input:focus-visible,
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
-  margin-top: 8px;
+  margin-top: 14px;
 }
 
 .admin-stat {
@@ -2451,6 +2452,28 @@ input:focus-visible,
   border: 1px solid rgba(5, 10, 48, 0.08);
   border-radius: 24px;
   background: #fff;
+}
+
+.admin-preview-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 280px;
+  border: 1px dashed rgba(5, 10, 48, 0.12);
+  border-radius: 24px;
+  color: rgba(5, 10, 48, 0.48);
+  font-size: 15px;
+  line-height: 1.7;
+  text-align: center;
+  padding: 28px;
+}
+
+.admin-save-status {
+  min-width: 104px;
+  color: rgba(5, 10, 48, 0.56);
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: right;
 }
 
 .admin-toggle-group {
@@ -2557,6 +2580,15 @@ html.dark-mode .admin-logout-link {
 
 html.dark-mode .admin-disclosure-summary::after {
   color: rgba(251, 246, 242, 0.54);
+}
+
+html.dark-mode .admin-preview-placeholder {
+  border-color: rgba(251, 246, 242, 0.12);
+  color: rgba(251, 246, 242, 0.48);
+}
+
+html.dark-mode .admin-save-status {
+  color: rgba(251, 246, 242, 0.56);
 }
 
 html.dark-mode .footer-linkedin-link {
@@ -3143,12 +3175,18 @@ html.dark-mode .framework-step-button.is-active {
 
   .admin-action-row {
     width: 100%;
+    justify-content: stretch;
   }
 
   .admin-action-row .btn-primary,
   .admin-action-row .btn-secondary {
     width: 100%;
     justify-content: center;
+  }
+
+  .admin-save-status {
+    min-width: 0;
+    text-align: left;
   }
 
   .admin-utility-bar {
