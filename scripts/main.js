@@ -650,15 +650,6 @@ function loadThemePreference() {
   mobileThemeToggle?.classList.add("dark");
 }
 
-function formatIdeaDate(dateString) {
-  if (!dateString) return "";
-  return new Intl.DateTimeFormat("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric"
-  }).format(new Date(dateString));
-}
-
 function renderLatestIdeas(posts) {
   if (!latestIdeasGrid) return;
 
@@ -669,7 +660,6 @@ function renderLatestIdeas(posts) {
         <h3 class="font-heading article-title">${post.title}</h3>
         <p class="font-body body-copy article-excerpt">${post.excerpt}</p>
         <div class="ideas-card-footer">
-          <p class="ideas-card-date">${formatIdeaDate(post.date)}</p>
           <a href="${post.url}" class="read-more-link cta-link">Read More</a>
         </div>
       </article>
