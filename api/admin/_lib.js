@@ -264,6 +264,75 @@ async function getRecentPosts(limit = 5) {
     .slice(0, limit);
 }
 
+async function getAllPostSources() {
+  const files = await listGitHubPostFiles();
+  const posts = await Promise.all(
+    files.map(async (file) => {
+      const sourceFile = await getGitHubFile(file.path);
+      if (!sourceFile) return null;
+      const post = parsePostSource(sourceFile.content);
+      return {
+        filePath: file.path,
+        ...post
+      };
+    })
+  );
+
+  return posts.filter(Boolean);
+}
+
+async function normalizeHomepageOrdering(nextPost, originalSlug) {
+  const shouldPosition = nextPost.homepage_featured && Number.isInteger(nextPost.homepage_order) && nextPost.homepage_order >= 1 && nextPost.homepage_order <= 3;
+  if (!shouldPosition) {
+    return [];
+  }
+
+  const allPosts = await getAllPostSources();
+  const competingPosts = allPosts
+    .filter((post) => post.slug !== nextPost.slug && post.slug !== originalSlug)
+    .filter((post) => post.homepage_featured && Number.isInteger(post.homepage_order) && post.homepage_order >= 1)
+    .sort((left, right) => left.homepage_order - right.homepage_order);
+
+  const reordered = [];
+  const seenSlugs = new Set();
+
+  competingPosts.forEach((post) => {
+    if (!seenSlugs.has(post.slug)) {
+      reordered.push({
+        ...post,
+        homepage_featured: true,
+        homepage_order: post.homepage_order
+      });
+      seenSlugs.add(post.slug);
+    }
+  });
+
+  const insertIndex = Math.max(0, Math.min(nextPost.homepage_order - 1, reordered.length));
+  reordered.splice(insertIndex, 0, { slug: nextPost.slug });
+
+  const updates = [];
+
+  reordered.forEach((entry, index) => {
+    const position = index + 1;
+    if (entry.slug === nextPost.slug) return;
+    const sourcePost = competingPosts.find((post) => post.slug === entry.slug);
+    if (!sourcePost) return;
+
+    const nextHomepageFeatured = position <= 3;
+    const nextHomepageOrder = nextHomepageFeatured ? position : null;
+
+    if (sourcePost.homepage_featured !== nextHomepageFeatured || sourcePost.homepage_order !== nextHomepageOrder) {
+      updates.push({
+        ...sourcePost,
+        homepage_featured: nextHomepageFeatured,
+        homepage_order: nextHomepageOrder
+      });
+    }
+  });
+
+  return updates;
+}
+
 async function updateRedirectsIfNeeded(originalSlug, nextSlug) {
   if (!originalSlug || !nextSlug || originalSlug === nextSlug) return;
   const redirectsPath = "content/redirects.json";
@@ -354,6 +423,19 @@ async function savePostToGitHub(body) {
     ...nextPost,
     cover_image: coverImagePath
   });
+
+  const homepageUpdates = await normalizeHomepageOrdering(
+    {
+      ...nextPost,
+      cover_image: coverImagePath
+    },
+    originalSlug
+  );
+
+  for (const post of homepageUpdates) {
+    const updateSource = serializeFrontMatter(post);
+    await putGitHubFile(`content/posts/${post.slug}.md`, updateSource, `Reorder homepage idea: ${post.title}`);
+  }
 
   await putGitHubFile(`content/posts/${nextPost.slug}.md`, source, `Save idea: ${nextPost.title}`);
   if (existingSource && originalSlug !== nextPost.slug) {
