@@ -2640,6 +2640,13 @@ html.dark-mode .admin-inline-action {
   color: rgba(251, 246, 242, 0.56);
 }
 
+html.dark-mode .admin-stat strong,
+html.dark-mode .admin-input,
+html.dark-mode .admin-input select,
+html.dark-mode .admin-input[type="date"] {
+  color: var(--color-silver-bird);
+}
+
 html.dark-mode .admin-inline-action:hover,
 html.dark-mode .admin-inline-action:focus-visible {
   color: rgba(251, 246, 242, 0.84);
