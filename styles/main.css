@@ -2015,7 +2015,7 @@ input:focus-visible,
 }
 
 .ideas-post-meta {
-  margin-top: 20px;
+  margin-top: 8px;
   margin-bottom: 34px;
 }
 
@@ -2943,7 +2943,7 @@ html.dark-mode .framework-step-button.is-active {
   }
 
   .ideas-post-meta {
-    margin-top: 18px;
+    margin-top: 6px;
     margin-bottom: 28px;
   }
 }
