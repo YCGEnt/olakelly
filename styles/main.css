@@ -2011,6 +2011,7 @@ input:focus-visible,
   margin: 22px 0 0;
   color: var(--color-ink-soft);
   font-size: 22px;
+  font-style: italic;
   line-height: 1.72;
 }
 
