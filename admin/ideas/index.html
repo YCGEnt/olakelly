@@ -6,6 +6,7 @@
   <title>Ideas Admin | Ola Kelly</title>
 
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Allura&family=Lato:wght@300;400;700&family=Playfair+Display:wght@600;700&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -15,20 +16,24 @@
   <main class="admin-main">
     <section class="admin-shell">
       <div class="admin-utility-bar">
-        <button type="button" class="admin-theme-toggle" id="adminThemeToggle" aria-label="Toggle dark mode">
-          <span class="admin-theme-toggle-label">Light Mode</span>
+        <button type="button" class="theme-toggle dark" id="adminThemeToggle" aria-label="Toggle dark mode">
+          <i data-lucide="sun" class="sun-icon"></i>
+          <i data-lucide="moon" class="moon-icon"></i>
         </button>
       </div>
 
       <div class="admin-login-panel" id="adminLoginPanel">
         <p class="admin-kicker">Private Publishing</p>
         <h1 class="font-heading admin-title">Ideas Admin</h1>
-        <p class="font-body admin-copy">This editor writes markdown to the Git-backed content system and previews the exact live article template before publish.</p>
-        <form id="adminLoginForm" class="admin-form">
-          <label class="admin-label" for="adminPassword">Password</label>
-          <input id="adminPassword" name="password" type="password" class="admin-input" autocomplete="current-password" required>
-          <p class="admin-hint">Private admin access</p>
-          <button type="submit" class="btn-primary">Enter Admin</button>
+        <p class="font-body admin-copy">Write, preview, and publish Ideas using the same template as the live site.</p>
+        <p class="font-body admin-login-note">Private publishing environment</p>
+        <form id="adminLoginForm" class="admin-form admin-login-form">
+          <div class="admin-field admin-login-field">
+            <label class="admin-label" for="adminPassword">Password</label>
+            <input id="adminPassword" name="password" type="password" class="admin-input" autocomplete="current-password" required>
+            <p class="admin-hint">Private admin access</p>
+          </div>
+          <button type="submit" class="btn-primary">ENTER ADMIN</button>
         </form>
         <p id="adminLoginMessage" class="admin-message" aria-live="polite"></p>
       </div>

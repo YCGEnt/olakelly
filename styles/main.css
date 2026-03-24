@@ -2164,27 +2164,6 @@ input:focus-visible,
   margin-bottom: 22px;
 }
 
-.admin-theme-toggle {
-  min-height: 46px;
-  padding: 0 18px;
-  border-radius: 999px;
-  border: 1px solid rgba(5, 10, 48, 0.12);
-  background: rgba(255, 255, 255, 0.72);
-  color: var(--color-cosmic-void);
-  font-family: "Raleway", sans-serif;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
-}
-
-.admin-theme-toggle:hover,
-.admin-theme-toggle:focus-visible {
-  transform: translateY(-1px);
-  background: rgba(255, 255, 255, 0.88);
-}
-
 .admin-login-panel,
 .admin-editor-panel,
 .admin-preview-panel {
@@ -2233,10 +2212,26 @@ input:focus-visible,
   line-height: 1.8;
 }
 
+.admin-login-note {
+  margin: 10px 0 0;
+  color: var(--color-ink-muted);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
 .admin-form {
   display: grid;
   gap: 18px;
   margin-top: 30px;
+}
+
+.admin-login-form {
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.admin-login-field {
+  gap: 6px;
 }
 
 .admin-form-grid {
@@ -2401,6 +2396,7 @@ html.dark-mode .ideas-post-subtitle,
 html.dark-mode .ideas-post-body,
 html.dark-mode .ideas-linkedin-note,
 html.dark-mode .admin-copy,
+html.dark-mode .admin-login-note,
 html.dark-mode .admin-hint {
   color: rgba(251, 246, 242, 0.76);
 }
@@ -2456,17 +2452,6 @@ html.dark-mode .admin-textarea {
 html.dark-mode .admin-input::placeholder,
 html.dark-mode .admin-textarea::placeholder {
   color: rgba(251, 246, 242, 0.34);
-}
-
-html.dark-mode .admin-theme-toggle {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(251, 246, 242, 0.14);
-  color: rgba(251, 246, 242, 0.84);
-}
-
-html.dark-mode .admin-theme-toggle:hover,
-html.dark-mode .admin-theme-toggle:focus-visible {
-  background: rgba(255, 255, 255, 0.1);
 }
 
 html.dark-mode .admin-main {
@@ -3002,12 +2987,6 @@ html.dark-mode .framework-step-button.is-active {
   .admin-editor-panel,
   .admin-preview-panel {
     padding: 24px;
-  }
-
-  .admin-theme-toggle {
-    min-height: 42px;
-    padding: 0 16px;
-    letter-spacing: 0.14em;
   }
 
   .admin-preview-frame {
