@@ -172,6 +172,24 @@
     };
   }
 
+  function getCurrentLineInfo() {
+    const { value, selectionStart, selectionEnd } = getTextareaSelection();
+    const lineStart = value.lastIndexOf("\n", Math.max(0, selectionStart - 1)) + 1;
+    const lineEndIndex = value.indexOf("\n", selectionEnd);
+    const lineEnd = lineEndIndex === -1 ? value.length : lineEndIndex;
+    const currentLine = value.slice(lineStart, lineEnd);
+
+    return {
+      value,
+      selectionStart,
+      selectionEnd,
+      lineStart,
+      lineEnd,
+      currentLine,
+      caretOffset: selectionStart - lineStart
+    };
+  }
+
   function isWrappedWith(value, selectionStart, selectionEnd, prefix, suffix) {
     if (selectionStart < prefix.length || selectionEnd + suffix.length > value.length) {
       return false;
@@ -218,6 +236,44 @@
     updateContentSelection(nextValue, nextStart, nextEnd);
   }
 
+  function isExactlyItalicWrapped(value, selectionStart, selectionEnd) {
+    if (!isWrappedWith(value, selectionStart, selectionEnd, "*", "*")) return false;
+    const beforeOpening = value.charAt(selectionStart - 2);
+    const afterClosing = value.charAt(selectionEnd + 1);
+    return beforeOpening !== "*" && afterClosing !== "*";
+  }
+
+  function applyItalicToggle() {
+    const { value, selectionStart, selectionEnd } = getTextareaSelection();
+    const selectedText = value.slice(selectionStart, selectionEnd);
+
+    if (!selectedText) {
+      const replacement = "**";
+      const nextValue = `${value.slice(0, selectionStart)}${replacement}${value.slice(selectionEnd)}`;
+      updateContentSelection(nextValue, selectionStart + 1, selectionStart + 1);
+      return;
+    }
+
+    if (isExactlyItalicWrapped(value, selectionStart, selectionEnd)) {
+      const wrappedStart = selectionStart - 1;
+      const wrappedEnd = selectionEnd + 1;
+      const nextValue = `${value.slice(0, wrappedStart)}${selectedText}${value.slice(wrappedEnd)}`;
+      updateContentSelection(nextValue, wrappedStart, wrappedStart + selectedText.length);
+      return;
+    }
+
+    const before = value.charAt(selectionStart - 1);
+    const after = value.charAt(selectionEnd);
+    if (before === "*" || after === "*") {
+      updateContentSelection(value, selectionStart, selectionEnd);
+      return;
+    }
+
+    const replacement = `*${selectedText}*`;
+    const nextValue = `${value.slice(0, selectionStart)}${replacement}${value.slice(selectionEnd)}`;
+    updateContentSelection(nextValue, selectionStart + 1, selectionStart + 1 + selectedText.length);
+  }
+
   function applyLinkFormat() {
     const { value, selectionStart, selectionEnd } = getTextareaSelection();
     const selectedText = value.slice(selectionStart, selectionEnd);
@@ -236,11 +292,7 @@
   }
 
   function applyLinePrefixToggle(prefix) {
-    const { value, selectionStart } = getTextareaSelection();
-    const lineStart = value.lastIndexOf("\n", Math.max(0, selectionStart - 1)) + 1;
-    const lineEndIndex = value.indexOf("\n", selectionStart);
-    const lineEnd = lineEndIndex === -1 ? value.length : lineEndIndex;
-    const currentLine = value.slice(lineStart, lineEnd);
+    const { value, selectionStart, lineStart, lineEnd, currentLine } = getCurrentLineInfo();
 
     if (currentLine.startsWith(prefix)) {
       const nextValue = `${value.slice(0, lineStart)}${currentLine.slice(prefix.length)}${value.slice(lineEnd)}`;
@@ -252,6 +304,53 @@
     const nextValue = `${value.slice(0, lineStart)}${prefix}${value.slice(lineStart)}`;
     const nextCaret = selectionStart + prefix.length;
     updateContentSelection(nextValue, nextCaret, nextCaret);
+  }
+
+  function continueMarkdownLine(prefix, nextPrefix) {
+    const { value, lineStart, lineEnd, currentLine, caretOffset } = getCurrentLineInfo();
+    const afterPrefix = currentLine.slice(prefix.length);
+    const beforeCaret = currentLine.slice(0, caretOffset);
+    const afterCaret = currentLine.slice(caretOffset);
+
+    if (!afterPrefix.trim()) {
+      const nextValue = `${value.slice(0, lineStart)}${value.slice(lineEnd)}`;
+      updateContentSelection(nextValue, lineStart, lineStart);
+      return true;
+    }
+
+    const insertion = `\n${nextPrefix}`;
+    const caretPosition = lineStart + beforeCaret.length + insertion.length;
+    const nextValue = `${value.slice(0, lineStart)}${beforeCaret}${insertion}${afterCaret}${value.slice(lineEnd)}`;
+    updateContentSelection(nextValue, caretPosition, caretPosition);
+    return true;
+  }
+
+  function handleEditorEnter(event) {
+    if (!postContent || event.key !== "Enter" || event.shiftKey || event.altKey || event.ctrlKey || event.metaKey) {
+      return;
+    }
+
+    const { selectionStart, selectionEnd, currentLine } = getCurrentLineInfo();
+    if (selectionStart !== selectionEnd) return;
+
+    if (currentLine.startsWith("- ")) {
+      event.preventDefault();
+      continueMarkdownLine("- ", "- ");
+      return;
+    }
+
+    const numberedMatch = currentLine.match(/^(\d+)\.\s/);
+    if (numberedMatch) {
+      event.preventDefault();
+      const currentNumber = Number(numberedMatch[1]);
+      continueMarkdownLine(numberedMatch[0], `${currentNumber + 1}. `);
+      return;
+    }
+
+    if (currentLine.startsWith("> ")) {
+      event.preventDefault();
+      continueMarkdownLine("> ", "> ");
+    }
   }
 
   function applyDivider() {
@@ -270,7 +369,7 @@
         applyToggleWrap("**", "**");
         return;
       case "italic":
-        applyToggleWrap("*", "*", { disallowAdjacent: ["*"] });
+        applyItalicToggle();
         return;
       case "link":
         applyLinkFormat();
@@ -758,6 +857,8 @@
     if (!recentPostsSelect.value) return;
     await loadPost(recentPostsSelect.value);
   });
+
+  postContent?.addEventListener("keydown", handleEditorEnter);
 
   previewButton?.addEventListener("click", async () => {
     setMessage(editorMessage, "");
