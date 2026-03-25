@@ -78,7 +78,23 @@ function requireSession(req, res) {
   return true;
 }
 
+function derivePreviewExcerpt(content) {
+  return String(content || "")
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/!\[([^\]]*)\]\([^)]+\)/g, "$1")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/(^|\n)\s{0,3}(#{1,6}|\*|-|\+|\d+\.)\s+/g, " ")
+    .replace(/(^|\n)\s{0,3}>\s?/g, " ")
+    .replace(/[*_~>#-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 200);
+}
+
 function buildPreviewPost(body) {
+  const previewExcerpt = String(body.excerpt || "").trim() || derivePreviewExcerpt(body.content);
+
   return computePost(
     {
       id: body.id || `preview-${Date.now()}`,
@@ -94,10 +110,10 @@ function buildPreviewPost(body) {
       category: body.category || "STEWARD Framework",
       category_slug: body.category_slug || "steward-framework",
       tags: body.tags || [],
-      excerpt: body.excerpt,
+      excerpt: previewExcerpt,
       intent: body.intent || "",
       seo_title: body.seo_title || body.title,
-      seo_description: body.seo_description || body.excerpt,
+      seo_description: body.seo_description || previewExcerpt,
       canonical_url: body.canonical_url || "",
       show_date: body.show_date !== false,
       show_updated_date: Boolean(body.show_updated_date),

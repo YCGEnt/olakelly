@@ -13,6 +13,7 @@
   const logoutButton = document.getElementById("adminLogoutBtn");
   const previewFrame = document.getElementById("previewFrame");
   const previewPlaceholder = document.getElementById("previewPlaceholder");
+  const previewError = document.getElementById("previewError");
   const previewSlug = document.getElementById("previewSlug");
   const previewReadTime = document.getElementById("previewReadTime");
   const previewWordCount = document.getElementById("previewWordCount");
@@ -103,6 +104,47 @@
   function setPreviewVisibility(hasPreview) {
     previewPlaceholder?.classList.toggle("is-hidden", hasPreview);
     previewFrame?.classList.toggle("is-hidden", !hasPreview);
+  }
+
+  function setPreviewPlaceholderState() {
+    previewPlaceholder?.classList.remove("is-hidden");
+    previewError?.classList.add("is-hidden");
+    previewFrame?.classList.add("is-hidden");
+  }
+
+  function setPreviewRenderedState(html) {
+    if (previewFrame) {
+      previewFrame.srcdoc = html || "";
+    }
+    previewPlaceholder?.classList.add("is-hidden");
+    previewError?.classList.add("is-hidden");
+    previewFrame?.classList.toggle("is-hidden", !html);
+  }
+
+  function setPreviewErrorState(message) {
+    if (previewFrame) {
+      previewFrame.srcdoc = "";
+    }
+    if (previewError) {
+      previewError.textContent = message || "Preview could not be generated.";
+    }
+    previewPlaceholder?.classList.add("is-hidden");
+    previewError?.classList.remove("is-hidden");
+    previewFrame?.classList.add("is-hidden");
+  }
+
+  function derivePreviewExcerpt(content) {
+    return String(content || "")
+      .replace(/```[\s\S]*?```/g, " ")
+      .replace(/`([^`]+)`/g, "$1")
+      .replace(/!\[([^\]]*)\]\([^)]+\)/g, "$1")
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+      .replace(/(^|\n)\s{0,3}(#{1,6}|\*|-|\+|\d+\.)\s+/g, " ")
+      .replace(/(^|\n)\s{0,3}>\s?/g, " ")
+      .replace(/[*_~>#-]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 200);
   }
 
   function updateContentSelection(nextValue, nextStart, nextEnd = nextStart) {
@@ -222,13 +264,12 @@
   }
 
   function clearPreview() {
-    if (previewFrame) {
-      previewFrame.srcdoc = "";
-    }
+    if (previewFrame) previewFrame.srcdoc = "";
+    if (previewError) previewError.textContent = "Preview could not be generated.";
     previewSlug.textContent = "-";
     previewReadTime.textContent = "-";
     previewWordCount.textContent = "-";
-    setPreviewVisibility(false);
+    setPreviewPlaceholderState();
   }
 
   function updateSaveStatus() {
@@ -510,33 +551,70 @@
   }
 
   async function runPreview() {
-    if (!editorShell || editorShell.classList.contains("is-hidden")) return;
+    console.debug("[Ideas Preview] runPreview invoked");
+    if (!editorShell || editorShell.classList.contains("is-hidden")) {
+      console.debug("[Ideas Preview] skipped because editor is hidden");
+      return;
+    }
 
     const payload = await getFormPayload();
-    if (!payload.title || !payload.excerpt || !payload.content) {
+    const hasMinimumPreviewContent = Boolean(payload.title?.trim() && payload.content?.trim());
+    console.debug("[Ideas Preview] payload readiness", {
+      hasTitle: Boolean(payload.title?.trim()),
+      hasContent: Boolean(payload.content?.trim()),
+      hasExcerpt: Boolean(payload.excerpt?.trim())
+    });
+
+    if (!hasMinimumPreviewContent) {
       clearPreview();
+      console.debug("[Ideas Preview] placeholder shown due to missing title or content");
       return;
+    }
+
+    if (!payload.excerpt?.trim()) {
+      payload.excerpt = derivePreviewExcerpt(payload.content);
     }
 
     const requestId = Date.now();
     latestPreviewRequest = requestId;
-    const data = await requestApi("/api/admin/preview", {
-      method: "POST",
-      body: JSON.stringify(payload)
-    });
-    if (latestPreviewRequest !== requestId) return;
+    console.debug("[Ideas Preview] request start");
 
-    previewFrame.srcdoc = data.html || "";
-    previewSlug.textContent = data.slug || "-";
-    previewReadTime.textContent = data.reading_time ? `${data.reading_time} min` : "-";
-    previewWordCount.textContent = data.word_count || "-";
-    setPreviewVisibility(Boolean(data.html));
-    if (!originalSlugInput.value && data.slug) {
-      originalSlugInput.value = data.slug;
+    try {
+      const data = await requestApi("/api/admin/preview", {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+      if (latestPreviewRequest !== requestId) {
+        console.debug("[Ideas Preview] stale response ignored");
+        return;
+      }
+
+      console.debug("[Ideas Preview] request success", {
+        hasHtml: Boolean(data.html),
+        slug: data.slug || ""
+      });
+
+      if (!data.html) {
+        throw new Error("Preview response did not include HTML.");
+      }
+
+      previewSlug.textContent = data.slug || "-";
+      previewReadTime.textContent = data.reading_time ? `${data.reading_time} min` : "-";
+      previewWordCount.textContent = data.word_count || "-";
+      setPreviewRenderedState(data.html);
+      if (!originalSlugInput.value && data.slug) {
+        originalSlugInput.value = data.slug;
+      }
+      console.debug("[Ideas Preview] render complete");
+    } catch (error) {
+      if (latestPreviewRequest !== requestId) return;
+      console.error("[Ideas Preview] request failed", error);
+      setPreviewErrorState("Preview could not be generated.");
     }
   }
 
   function schedulePreview() {
+    console.debug("[Ideas Preview] schedulePreview invoked");
     if (previewDebounceTimer) {
       window.clearTimeout(previewDebounceTimer);
     }
@@ -544,8 +622,9 @@
     previewDebounceTimer = window.setTimeout(async () => {
       try {
         await runPreview();
-      } catch (_error) {
-        clearPreview();
+      } catch (error) {
+        console.error("[Ideas Preview] unexpected preview failure", error);
+        setPreviewErrorState("Preview could not be generated.");
       }
     }, 450);
   }
@@ -682,7 +761,7 @@
         setEditingState(data.slug || payload.slug);
         if (existingPostSlugInput) existingPostSlugInput.value = data.slug || payload.slug;
       }
-      setPreviewVisibility(true);
+      setPreviewRenderedState(data.html || previewFrame?.srcdoc || "");
       markSavedNow();
       refreshCleanSnapshot();
       await loadRecentPosts();
