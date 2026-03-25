@@ -2759,6 +2759,12 @@ html.dark-mode .admin-hint {
   color: rgba(251, 246, 242, 0.76);
 }
 
+html.dark-mode .ideas-post-shell .ideas-post-body h2,
+html.dark-mode .ideas-post-shell .ideas-post-body h3,
+html.dark-mode .ideas-post-shell .ideas-post-body h4 {
+  color: var(--color-silver-bird);
+}
+
 html.dark-mode .ideas-card,
 html.dark-mode .ideas-intent,
 html.dark-mode .ideas-tag,
