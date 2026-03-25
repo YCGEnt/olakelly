@@ -2435,6 +2435,38 @@ input:focus-visible,
   gap: 12px;
 }
 
+.admin-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-toolbar-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(5, 10, 48, 0.12);
+  background: rgba(255, 255, 255, 0.52);
+  color: rgba(5, 10, 48, 0.68);
+  font-family: "Raleway", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+
+.admin-toolbar-button:hover,
+.admin-toolbar-button:focus-visible {
+  color: var(--color-cosmic-void);
+  border-color: rgba(5, 10, 48, 0.2);
+  background: rgba(255, 255, 255, 0.78);
+}
+
 .admin-editing-state {
   margin: 0 0 8px;
   color: rgba(5, 10, 48, 0.56);
@@ -2697,8 +2729,10 @@ html.dark-mode .admin-logout-link {
 
 html.dark-mode .admin-editing-state,
 html.dark-mode .admin-inline-action,
-html.dark-mode .admin-preview-refresh {
+html.dark-mode .admin-preview-refresh,
+html.dark-mode .admin-toolbar-button {
   color: rgba(251, 246, 242, 0.56);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 html.dark-mode .admin-stat strong,
@@ -2711,16 +2745,21 @@ html.dark-mode .admin-input[type="date"] {
 html.dark-mode .admin-inline-action:hover,
 html.dark-mode .admin-inline-action:focus-visible,
 html.dark-mode .admin-preview-refresh:hover,
-html.dark-mode .admin-preview-refresh:focus-visible {
+html.dark-mode .admin-preview-refresh:focus-visible,
+html.dark-mode .admin-toolbar-button:hover,
+html.dark-mode .admin-toolbar-button:focus-visible {
   color: rgba(251, 246, 242, 0.84);
 }
 
-html.dark-mode .admin-preview-refresh {
+html.dark-mode .admin-preview-refresh,
+html.dark-mode .admin-toolbar-button {
   border-color: rgba(251, 246, 242, 0.12);
 }
 
 html.dark-mode .admin-preview-refresh:hover,
-html.dark-mode .admin-preview-refresh:focus-visible {
+html.dark-mode .admin-preview-refresh:focus-visible,
+html.dark-mode .admin-toolbar-button:hover,
+html.dark-mode .admin-toolbar-button:focus-visible {
   border-color: rgba(251, 246, 242, 0.2);
   background: rgba(255, 255, 255, 0.06);
 }

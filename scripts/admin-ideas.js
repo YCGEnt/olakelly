@@ -20,6 +20,8 @@
   const editingStateLabel = document.getElementById("editingStateLabel");
   const titleInput = document.getElementById("postTitle");
   const slugInput = document.getElementById("postSlug");
+  const postContent = document.getElementById("postContent");
+  const formatButtons = Array.from(document.querySelectorAll("[data-format-action]"));
   const editSlugBtn = document.getElementById("editSlugBtn");
   const originalSlugInput = document.getElementById("originalSlug");
   const postIdInput = document.getElementById("postId");
@@ -101,6 +103,121 @@
   function setPreviewVisibility(hasPreview) {
     previewPlaceholder?.classList.toggle("is-hidden", hasPreview);
     previewFrame?.classList.toggle("is-hidden", !hasPreview);
+  }
+
+  function updateContentSelection(nextValue, nextStart, nextEnd = nextStart) {
+    if (!postContent) return;
+    postContent.value = nextValue;
+    postContent.focus();
+    postContent.setSelectionRange(nextStart, nextEnd);
+    schedulePreview();
+  }
+
+  function getTextareaSelection() {
+    if (!postContent) {
+      return {
+        value: "",
+        selectionStart: 0,
+        selectionEnd: 0
+      };
+    }
+
+    return {
+      value: postContent.value,
+      selectionStart: postContent.selectionStart,
+      selectionEnd: postContent.selectionEnd
+    };
+  }
+
+  function applyWrapFormat(prefix, suffix) {
+    const { value, selectionStart, selectionEnd } = getTextareaSelection();
+    const selectedText = value.slice(selectionStart, selectionEnd);
+    const replacement = `${prefix}${selectedText}${suffix}`;
+    const nextValue = `${value.slice(0, selectionStart)}${replacement}${value.slice(selectionEnd)}`;
+    const nextStart = selectionStart + prefix.length;
+    const nextEnd = nextStart + selectedText.length;
+
+    if (!selectedText) {
+      updateContentSelection(nextValue, nextStart, nextStart);
+      return;
+    }
+
+    updateContentSelection(nextValue, nextStart, nextEnd);
+  }
+
+  function applyLinkFormat() {
+    const { value, selectionStart, selectionEnd } = getTextareaSelection();
+    const selectedText = value.slice(selectionStart, selectionEnd);
+
+    if (selectedText) {
+      const replacement = `[${selectedText}](url)`;
+      const nextValue = `${value.slice(0, selectionStart)}${replacement}${value.slice(selectionEnd)}`;
+      const urlStart = selectionStart + selectedText.length + 3;
+      updateContentSelection(nextValue, urlStart, urlStart);
+      return;
+    }
+
+    const replacement = "[text](url)";
+    const nextValue = `${value.slice(0, selectionStart)}${replacement}${value.slice(selectionEnd)}`;
+    updateContentSelection(nextValue, selectionStart + 1, selectionStart + 5);
+  }
+
+  function applyLinePrefix(prefix) {
+    const { value, selectionStart } = getTextareaSelection();
+    const lineStart = value.lastIndexOf("\n", Math.max(0, selectionStart - 1)) + 1;
+    const lineEndIndex = value.indexOf("\n", selectionStart);
+    const lineEnd = lineEndIndex === -1 ? value.length : lineEndIndex;
+    const currentLine = value.slice(lineStart, lineEnd);
+
+    if (currentLine.startsWith(prefix)) {
+      postContent.focus();
+      postContent.setSelectionRange(selectionStart, selectionStart);
+      return;
+    }
+
+    const nextValue = `${value.slice(0, lineStart)}${prefix}${value.slice(lineStart)}`;
+    const nextCaret = selectionStart + prefix.length;
+    updateContentSelection(nextValue, nextCaret, nextCaret);
+  }
+
+  function applyDivider() {
+    const { value, selectionStart, selectionEnd } = getTextareaSelection();
+    const replacement = "\n---\n";
+    const nextValue = `${value.slice(0, selectionStart)}${replacement}${value.slice(selectionEnd)}`;
+    const nextCaret = selectionStart + replacement.length;
+    updateContentSelection(nextValue, nextCaret, nextCaret);
+  }
+
+  function applyMarkdownFormat(action) {
+    if (!postContent) return;
+
+    switch (action) {
+      case "bold":
+        applyWrapFormat("**", "**");
+        return;
+      case "italic":
+        applyWrapFormat("*", "*");
+        return;
+      case "link":
+        applyLinkFormat();
+        return;
+      case "heading":
+        applyLinePrefix("## ");
+        return;
+      case "bullet":
+        applyLinePrefix("- ");
+        return;
+      case "numbered":
+        applyLinePrefix("1. ");
+        return;
+      case "quote":
+        applyLinePrefix("> ");
+        return;
+      case "divider":
+        applyDivider();
+        return;
+      default:
+    }
   }
 
   function clearPreview() {
@@ -582,6 +699,13 @@
   editorForm?.addEventListener("change", (event) => {
     if (event.target === homepageFeaturedInput) return;
     schedulePreview();
+  });
+
+  formatButtons.forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      applyMarkdownFormat(button.dataset.formatAction);
+    });
   });
 
   loadThemePreference();
