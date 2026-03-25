@@ -2,6 +2,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const { SITE_CSS_VERSION, SITE_JS_VERSION } = require("../lib/asset-versions");
 const {
   createFeedJson,
   createFeedXml,
@@ -19,6 +20,14 @@ const {
 const projectRoot = path.resolve(__dirname, "..");
 const postsDirectory = path.join(projectRoot, "content", "posts");
 const redirectsPath = path.join(projectRoot, "content", "redirects.json");
+const staticPages = [
+  path.join(projectRoot, "index.html"),
+  path.join(projectRoot, "about.html"),
+  path.join(projectRoot, "disclaimer.html"),
+  path.join(projectRoot, "privacy-policy.html"),
+  path.join(projectRoot, "terms.html"),
+  path.join(projectRoot, "steward-framework.html")
+];
 
 function ensureDirectory(directoryPath) {
   fs.mkdirSync(directoryPath, { recursive: true });
@@ -29,6 +38,19 @@ function writeFile(filePath, contents) {
   fs.writeFileSync(filePath, contents, "utf8");
 }
 
+function syncStaticPageAssetVersions() {
+  staticPages.forEach((filePath) => {
+    if (!fs.existsSync(filePath)) return;
+    const source = fs.readFileSync(filePath, "utf8");
+    const updated = source
+      .replace(/styles\/main\.css\?v=[^"]+/g, `styles/main.css?v=${SITE_CSS_VERSION}`)
+      .replace(/scripts\/main\.js\?v=[^"]+/g, `scripts/main.js?v=${SITE_JS_VERSION}`);
+    if (updated !== source) {
+      fs.writeFileSync(filePath, updated, "utf8");
+    }
+  });
+}
+
 function loadRedirects() {
   if (!fs.existsSync(redirectsPath)) return [];
   const redirectsData = JSON.parse(fs.readFileSync(redirectsPath, "utf8"));
@@ -36,6 +58,7 @@ function loadRedirects() {
 }
 
 function buildIdeas() {
+  syncStaticPageAssetVersions();
   const posts = loadPosts(postsDirectory);
   const publishedPosts = filterPublished(posts);
 

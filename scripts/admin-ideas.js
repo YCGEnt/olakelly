@@ -172,19 +172,49 @@
     };
   }
 
-  function applyWrapFormat(prefix, suffix) {
+  function isWrappedWith(value, selectionStart, selectionEnd, prefix, suffix) {
+    if (selectionStart < prefix.length || selectionEnd + suffix.length > value.length) {
+      return false;
+    }
+
+    return (
+      value.slice(selectionStart - prefix.length, selectionStart) === prefix &&
+      value.slice(selectionEnd, selectionEnd + suffix.length) === suffix
+    );
+  }
+
+  function applyToggleWrap(prefix, suffix, { disallowAdjacent = [] } = {}) {
     const { value, selectionStart, selectionEnd } = getTextareaSelection();
     const selectedText = value.slice(selectionStart, selectionEnd);
-    const replacement = `${prefix}${selectedText}${suffix}`;
-    const nextValue = `${value.slice(0, selectionStart)}${replacement}${value.slice(selectionEnd)}`;
-    const nextStart = selectionStart + prefix.length;
-    const nextEnd = nextStart + selectedText.length;
 
     if (!selectedText) {
+      const replacement = `${prefix}${suffix}`;
+      const nextValue = `${value.slice(0, selectionStart)}${replacement}${value.slice(selectionEnd)}`;
+      const nextStart = selectionStart + prefix.length;
       updateContentSelection(nextValue, nextStart, nextStart);
       return;
     }
 
+    if (isWrappedWith(value, selectionStart, selectionEnd, prefix, suffix)) {
+      const wrappedStart = selectionStart - prefix.length;
+      const wrappedEnd = selectionEnd + suffix.length;
+      const replacement = value.slice(selectionStart, selectionEnd);
+      const nextValue = `${value.slice(0, wrappedStart)}${replacement}${value.slice(wrappedEnd)}`;
+      updateContentSelection(nextValue, wrappedStart, wrappedStart + replacement.length);
+      return;
+    }
+
+    const before = value.charAt(selectionStart - 1);
+    const after = value.charAt(selectionEnd);
+    if (disallowAdjacent.includes(before) || disallowAdjacent.includes(after)) {
+      updateContentSelection(value, selectionStart, selectionEnd);
+      return;
+    }
+
+    const replacement = `${prefix}${selectedText}${suffix}`;
+    const nextValue = `${value.slice(0, selectionStart)}${replacement}${value.slice(selectionEnd)}`;
+    const nextStart = selectionStart + prefix.length;
+    const nextEnd = nextStart + selectedText.length;
     updateContentSelection(nextValue, nextStart, nextEnd);
   }
 
@@ -205,7 +235,7 @@
     updateContentSelection(nextValue, selectionStart + 1, selectionStart + 5);
   }
 
-  function applyLinePrefix(prefix) {
+  function applyLinePrefixToggle(prefix) {
     const { value, selectionStart } = getTextareaSelection();
     const lineStart = value.lastIndexOf("\n", Math.max(0, selectionStart - 1)) + 1;
     const lineEndIndex = value.indexOf("\n", selectionStart);
@@ -213,8 +243,9 @@
     const currentLine = value.slice(lineStart, lineEnd);
 
     if (currentLine.startsWith(prefix)) {
-      postContent.focus();
-      postContent.setSelectionRange(selectionStart, selectionStart);
+      const nextValue = `${value.slice(0, lineStart)}${currentLine.slice(prefix.length)}${value.slice(lineEnd)}`;
+      const nextCaret = Math.max(lineStart, selectionStart - prefix.length);
+      updateContentSelection(nextValue, nextCaret, nextCaret);
       return;
     }
 
@@ -236,25 +267,25 @@
 
     switch (action) {
       case "bold":
-        applyWrapFormat("**", "**");
+        applyToggleWrap("**", "**");
         return;
       case "italic":
-        applyWrapFormat("*", "*");
+        applyToggleWrap("*", "*", { disallowAdjacent: ["*"] });
         return;
       case "link":
         applyLinkFormat();
         return;
       case "heading":
-        applyLinePrefix("## ");
+        applyLinePrefixToggle("## ");
         return;
       case "bullet":
-        applyLinePrefix("- ");
+        applyLinePrefixToggle("- ");
         return;
       case "numbered":
-        applyLinePrefix("1. ");
+        applyLinePrefixToggle("1. ");
         return;
       case "quote":
-        applyLinePrefix("> ");
+        applyLinePrefixToggle("> ");
         return;
       case "divider":
         applyDivider();
