@@ -2102,6 +2102,23 @@ input:focus-visible,
   font-weight: 700;
 }
 
+.ideas-post-body ul,
+.ideas-post-body ol {
+  padding-left: 1.5em;
+}
+
+.ideas-post-body ul {
+  list-style: disc;
+}
+
+.ideas-post-body ol {
+  list-style: decimal;
+}
+
+.ideas-post-body li + li {
+  margin-top: 10px;
+}
+
 .ideas-post-body blockquote {
   padding: 18px 22px;
   border-left: 2px solid rgba(212, 175, 55, 0.62);
@@ -2722,6 +2739,7 @@ input:focus-visible,
 html.dark-mode .ideas-page-title,
 html.dark-mode .ideas-post-title,
 html.dark-mode .ideas-post-header .ideas-post-title,
+html.dark-mode .ideas-post-shell .ideas-post-header .ideas-post-title,
 html.dark-mode .ideas-card-title,
 html.dark-mode .ideas-card-title a,
 html.dark-mode .ideas-related-title,
