@@ -2104,7 +2104,8 @@ input:focus-visible,
 
 .ideas-post-body ul,
 .ideas-post-body ol {
-  padding-left: 1.5em;
+  padding-left: 1.5rem;
+  margin: 1rem 0;
 }
 
 .ideas-post-body ul {
@@ -2115,8 +2116,13 @@ input:focus-visible,
   list-style: decimal;
 }
 
-.ideas-post-body li + li {
-  margin-top: 10px;
+.ideas-post-body li {
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+}
+
+.ideas-post-body ol li {
+  padding-left: 0.25rem;
 }
 
 .ideas-post-body blockquote {
