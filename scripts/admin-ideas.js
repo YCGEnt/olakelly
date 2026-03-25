@@ -110,6 +110,7 @@
     postContent.value = nextValue;
     postContent.focus();
     postContent.setSelectionRange(nextStart, nextEnd);
+    postContent.dispatchEvent(new Event("input", { bubbles: true }));
     schedulePreview();
   }
 

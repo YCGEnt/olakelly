@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Allura&family=Lato:wght@300;400;700&family=Playfair+Display:wght@600;700&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../../styles/main.css?v=20260324b">
+  <link rel="stylesheet" href="../../styles/main.css?v=20260325a">
 </head>
 <body class="h-full dark-mode">
   <main class="admin-main">
@@ -238,14 +238,30 @@
                 <label class="admin-field admin-content-field">
                   <span class="admin-label">Content</span>
                   <div class="admin-toolbar" role="toolbar" aria-label="Markdown formatting toolbar">
-                    <button type="button" class="admin-toolbar-button" data-format-action="bold">Bold</button>
-                    <button type="button" class="admin-toolbar-button" data-format-action="italic">Italic</button>
-                    <button type="button" class="admin-toolbar-button" data-format-action="link">Link</button>
-                    <button type="button" class="admin-toolbar-button" data-format-action="heading">Heading</button>
-                    <button type="button" class="admin-toolbar-button" data-format-action="bullet">Bullet list</button>
-                    <button type="button" class="admin-toolbar-button" data-format-action="numbered">Numbered list</button>
-                    <button type="button" class="admin-toolbar-button" data-format-action="quote">Quote</button>
-                    <button type="button" class="admin-toolbar-button" data-format-action="divider">Divider</button>
+                    <button type="button" class="admin-toolbar-button" data-format-action="bold" aria-label="Bold" title="Bold">
+                      <i data-lucide="bold"></i>
+                    </button>
+                    <button type="button" class="admin-toolbar-button" data-format-action="italic" aria-label="Italic" title="Italic">
+                      <i data-lucide="italic"></i>
+                    </button>
+                    <button type="button" class="admin-toolbar-button" data-format-action="link" aria-label="Link" title="Link">
+                      <i data-lucide="link"></i>
+                    </button>
+                    <button type="button" class="admin-toolbar-button" data-format-action="heading" aria-label="Heading" title="Heading">
+                      <i data-lucide="heading"></i>
+                    </button>
+                    <button type="button" class="admin-toolbar-button" data-format-action="bullet" aria-label="Bullet list" title="Bullet list">
+                      <i data-lucide="list"></i>
+                    </button>
+                    <button type="button" class="admin-toolbar-button" data-format-action="numbered" aria-label="Numbered list" title="Numbered list">
+                      <i data-lucide="list-ordered"></i>
+                    </button>
+                    <button type="button" class="admin-toolbar-button" data-format-action="quote" aria-label="Quote" title="Quote">
+                      <i data-lucide="quote"></i>
+                    </button>
+                    <button type="button" class="admin-toolbar-button" data-format-action="divider" aria-label="Divider" title="Divider">
+                      <i data-lucide="minus"></i>
+                    </button>
                   </div>
                   <textarea class="admin-textarea admin-editor-textarea" name="content" id="postContent" required></textarea>
                 </label>
@@ -273,6 +289,6 @@
     </section>
   </main>
 
-  <script src="../../scripts/admin-ideas.js?v=20260324b"></script>
+  <script src="../../scripts/admin-ideas.js?v=20260325a"></script>
 </body>
 </html>
