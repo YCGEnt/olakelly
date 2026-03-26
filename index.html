@@ -470,23 +470,19 @@
             <p class="font-body body-copy">For leaders who think carefully about what they carry&mdash;and why it matters.</p>
           </div>
 
-          <form id="newsletterForm" class="newsletter-form">
+          <form id="newsletterForm" class="newsletter-form" data-signup-form>
             <div class="newsletter-field-wrap">
               <label for="emailInput" class="font-heading newsletter-label">Email address</label>
-              <input type="email" id="emailInput" placeholder="your@email.com" required>
+              <input type="email" id="emailInput" name="email" placeholder="your@email.com" required>
             </div>
+            <input type="hidden" name="source" value="homepage">
             <button type="submit" id="newsletterBtn" class="btn-primary newsletter-btn">Subscribe</button>
+            <div class="message-box error-message" data-signup-status aria-live="polite" style="display: none;">
+              <p class="font-body"></p>
+            </div>
           </form>
 
           <p class="font-body newsletter-reassurance">No noise. Just perspective worth carrying.</p>
-
-          <div id="successMessage" class="message-box success-message" style="display: none;">
-            <p class="font-body">Thank you. You&rsquo;re now in the conversation.</p>
-          </div>
-
-          <div id="errorMessage" class="message-box error-message" style="display: none;">
-            <p class="font-body" id="errorText">Please enter a valid email.</p>
-          </div>
         </div>
       </section>
     </main>

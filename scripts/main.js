@@ -74,7 +74,6 @@ const normalizedFrameworkSteps = frameworkLetterOrder
   .filter(Boolean);
 
 let activeFrameworkStep = null;
-let isSubmitting = false;
 let hasFrameworkAnimatedIn = false;
 let heroRotatorPhrases = [];
 
@@ -96,17 +95,10 @@ const mobileThemeToggle = document.getElementById("mobileThemeToggle");
 const htmlElement = document.documentElement;
 const bodyElement = document.body;
 
-const newsletterForm = document.getElementById("newsletterForm");
-const emailInput = document.getElementById("emailInput");
-const successMessage = document.getElementById("successMessage");
-const errorMessage = document.getElementById("errorMessage");
-const errorText = document.getElementById("errorText");
-const newsletterBtn = document.getElementById("newsletterBtn");
-
 const primaryCtaBtn = document.getElementById("primaryCtaBtn");
 const latestIdeasGrid = document.getElementById("latestIdeasGrid");
 
-const newsletterEndpoint = "";
+const SIGNUP_WEBHOOK_URL = "YOUR_LATENODE_WEBHOOK_URL";
 const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
 function setHeroRotatorMetrics() {
@@ -531,68 +523,100 @@ function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-function showSuccess() {
-  if (successMessage) successMessage.style.display = "block";
-  if (errorMessage) errorMessage.style.display = "none";
-
-  window.setTimeout(() => {
-    if (successMessage) successMessage.style.display = "none";
-  }, 5000);
+function readSignupInvalidFlag(responseBody) {
+  if (!responseBody || typeof responseBody !== "object") return false;
+  if (responseBody.invalid === true) return true;
+  if (responseBody.valid === false) return true;
+  if (responseBody.status === "invalid") return true;
+  return false;
 }
 
-function showError(message) {
-  if (errorText) errorText.textContent = message;
-  if (errorMessage) errorMessage.style.display = "block";
-  if (successMessage) successMessage.style.display = "none";
+function renderSignupStatus(statusElement, message, tone) {
+  if (!statusElement) return;
+
+  statusElement.classList.remove("success-message", "error-message");
+  statusElement.classList.add("message-box", tone === "success" ? "success-message" : "error-message");
+  statusElement.style.display = "block";
+  statusElement.innerHTML = `<p class="font-body">${message}</p>`;
 }
 
-async function submitNewsletter(email) {
-  if (isSubmitting) return;
+function replaceSignupFormWithSuccess(form) {
+  form.innerHTML = `
+    <div class="message-box success-message" data-signup-status aria-live="polite">
+      <p class="font-body">Thank you. You&rsquo;re now in the conversation.</p>
+    </div>
+  `;
+}
 
-  if (!newsletterEndpoint) {
-    showError("Newsletter endpoint is not configured yet.");
-    return;
-  }
+async function handleSignupSubmit(form) {
+  if (form.dataset.signupSubmitting === "true") return;
+
+  const emailField = form.querySelector('input[name="email"]');
+  const sourceField = form.querySelector('input[name="source"]');
+  const submitButton = form.querySelector('button[type="submit"], input[type="submit"]');
+  const statusElement = form.querySelector("[data-signup-status]");
+  const email = emailField?.value.trim() || "";
+  const source = sourceField?.value.trim() || "unknown";
 
   if (!isValidEmail(email)) {
-    showError("Please enter a valid email.");
+    renderSignupStatus(statusElement, "Please enter a valid email address.", "error");
     return;
   }
 
-  isSubmitting = true;
+  form.dataset.signupSubmitting = "true";
 
-  if (newsletterBtn) {
-    newsletterBtn.disabled = true;
-    newsletterBtn.textContent = "Subscribing...";
+  if (submitButton) {
+    submitButton.disabled = true;
   }
 
-  if (successMessage) successMessage.style.display = "none";
-  if (errorMessage) errorMessage.style.display = "none";
+  if (statusElement) {
+    statusElement.style.display = "none";
+    statusElement.textContent = "";
+  }
 
   try {
-    const response = await fetch(newsletterEndpoint, {
+    const response = await fetch(SIGNUP_WEBHOOK_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email })
+      body: JSON.stringify({ email, source })
     });
+    const responseBody = await response.json().catch(() => null);
 
-    if (response.ok) {
-      showSuccess();
-      if (emailInput) emailInput.value = "";
+    if (response.status === 200) {
+      replaceSignupFormWithSuccess(form);
+      delete form.dataset.signupSubmitting;
+      return;
+    }
+
+    if (response.status === 400 || readSignupInvalidFlag(responseBody)) {
+      renderSignupStatus(statusElement, "Please enter a valid email address.", "error");
     } else {
-      const errorData = await response.json().catch(() => ({}));
-      showError(errorData.message || "Subscription failed. Please try again.");
+      renderSignupStatus(statusElement, "Please try again.", "error");
     }
   } catch (error) {
-    showError("Unable to connect. Please check your endpoint and try again.");
+    renderSignupStatus(statusElement, "Please try again.", "error");
   } finally {
-    if (newsletterBtn) {
-      newsletterBtn.disabled = false;
-      newsletterBtn.textContent = "Subscribe";
-    }
+    if (form.querySelector("[data-signup-status]") === statusElement) {
+      if (submitButton) {
+        submitButton.disabled = false;
+      }
 
-    isSubmitting = false;
+      delete form.dataset.signupSubmitting;
+    }
   }
+}
+
+function initSignupForms() {
+  const signupForms = document.querySelectorAll("[data-signup-form]");
+
+  if (signupForms.length === 0) return;
+
+  signupForms.forEach((form) => {
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      handleSignupSubmit(form);
+    });
+  });
 }
 
 function initScrollEffects() {
@@ -618,11 +642,7 @@ function initEventListeners() {
 
   themeToggle?.addEventListener("click", toggleTheme);
   mobileThemeToggle?.addEventListener("click", toggleTheme);
-
-  newsletterForm?.addEventListener("submit", (event) => {
-    event.preventDefault();
-    if (emailInput) submitNewsletter(emailInput.value.trim());
-  });
+  initSignupForms();
 
   primaryCtaBtn?.addEventListener("click", () => {
     document.getElementById("framework")?.scrollIntoView({ behavior: "smooth" });
