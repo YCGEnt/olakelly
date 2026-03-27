@@ -98,7 +98,7 @@ const bodyElement = document.body;
 const primaryCtaBtn = document.getElementById("primaryCtaBtn");
 const latestIdeasGrid = document.getElementById("latestIdeasGrid");
 
-const SIGNUP_WEBHOOK_URL = "YOUR_LATENODE_WEBHOOK_URL";
+const SIGNUP_ENDPOINT = "/api/signup";
 const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
 function setHeroRotatorMetrics() {
@@ -519,18 +519,6 @@ function toggleTheme() {
   localStorage.setItem("darkMode", "true");
 }
 
-function isValidEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-function readSignupInvalidFlag(responseBody) {
-  if (!responseBody || typeof responseBody !== "object") return false;
-  if (responseBody.invalid === true) return true;
-  if (responseBody.valid === false) return true;
-  if (responseBody.status === "invalid") return true;
-  return false;
-}
-
 function renderSignupStatus(statusElement, message, tone) {
   if (!statusElement) return;
 
@@ -558,11 +546,6 @@ async function handleSignupSubmit(form) {
   const email = emailField?.value.trim() || "";
   const source = sourceField?.value.trim() || "unknown";
 
-  if (!isValidEmail(email)) {
-    renderSignupStatus(statusElement, "Please enter a valid email address.", "error");
-    return;
-  }
-
   form.dataset.signupSubmitting = "true";
 
   if (submitButton) {
@@ -575,12 +558,11 @@ async function handleSignupSubmit(form) {
   }
 
   try {
-    const response = await fetch(SIGNUP_WEBHOOK_URL, {
+    const response = await fetch(SIGNUP_ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, source })
     });
-    const responseBody = await response.json().catch(() => null);
 
     if (response.status === 200) {
       replaceSignupFormWithSuccess(form);
@@ -588,11 +570,7 @@ async function handleSignupSubmit(form) {
       return;
     }
 
-    if (response.status === 400 || readSignupInvalidFlag(responseBody)) {
-      renderSignupStatus(statusElement, "Please enter a valid email address.", "error");
-    } else {
-      renderSignupStatus(statusElement, "Please try again.", "error");
-    }
+    renderSignupStatus(statusElement, "Please try again.", "error");
   } catch (error) {
     renderSignupStatus(statusElement, "Please try again.", "error");
   } finally {

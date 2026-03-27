@@ -45,11 +45,36 @@ py -m http.server 8000
 
 This project uses Vercel's built-in Git integration.
 
+### Newsletter signup webhook
+
+The public signup form posts to the local Vercel function at `/api/signup`.
+
+Set this environment variable in Vercel:
+
+- `PABBLY_SIGNUP_WEBHOOK_URL`
+
+Flow:
+
+`Form -> /api/signup -> Pabbly webhook -> Reoon verification -> TinyEmail`
+
+Important:
+
+- Do not connect the frontend form directly to TinyEmail
+- Frontend success behavior depends only on `200 OK`
+- Any non-200 response is treated as a general failure
+- Reoon handles email verification in the backend flow
+
 ### Vercel settings
 
 - Framework Preset: `Other`
 - Build Command: `npm run build`
 - Output Directory: `.`
+
+### Local testing note
+
+`.\start.ps1` serves the static site only. It does not run Vercel API routes.
+
+If you need to test the signup proxy locally, run the project with `vercel dev` so `/api/signup` and `PABBLY_SIGNUP_WEBHOOK_URL` are available during local development.
 
 ### Branch workflow
 
