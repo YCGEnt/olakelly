@@ -1747,12 +1747,14 @@ input:focus-visible,
   margin-top: 24px;
   padding: 16px 18px;
   border: 1px solid transparent;
+  border-radius: 0;
 }
 
 .success-message {
-  background: rgba(67, 126, 87, 0.09);
-  border-color: rgba(67, 126, 87, 0.2);
-  color: #21492e;
+  background: rgba(212, 175, 55, 0.08);
+  border-color: rgba(212, 175, 55, 0.28);
+  color: var(--color-gold);
+  box-shadow: inset 0 1px 0 rgba(251, 246, 242, 0.04);
 }
 
 .error-message {

@@ -531,7 +531,7 @@ function renderSignupStatus(statusElement, message, tone) {
 function replaceSignupFormWithSuccess(form) {
   form.innerHTML = `
     <div class="message-box success-message" data-signup-status aria-live="polite">
-      <p class="font-body">Thank you. You&rsquo;re now in the conversation.</p>
+      <p class="font-body">You&rsquo;re in. Thoughtful notes will arrive when they&rsquo;re worth sending.</p>
     </div>
   `;
 }
