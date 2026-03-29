@@ -29,4 +29,32 @@ related_posts:
   - "when-capacity-is-the-leadership-issue"
 ---
 
+For ambitious people, "done" is often a visual concept.
 
+It looks like output, momentum, inboxes cleared, timelines met, and a public signal that something moved because we moved it.
+
+But stewardship asks a more demanding question: was the responsibility carried well?
+
+"Done" in stewardship is not simply the end of visible effort. It is the point where the work has been carried to a faithful finish without quietly damaging the judgment, relationships, or capacity that will be needed tomorrow.
+
+That distinction matters because some work can be completed and still be handled poorly.
+
+You can ship the project while burning credibility with the people who had to absorb your hurry.
+
+You can accept the opportunity, deliver the keynote, lead the initiative, or make the decision and still leave behind unnecessary confusion, thin communication, or an exhausted team.
+
+In other words, activity can end before responsibility does.
+
+Stewardship treats completion as moral, not merely operational.
+
+It asks whether the work was carried with enough clarity to reduce friction, enough restraint to avoid avoidable damage, and enough follow-through to leave the situation stronger than when it started.
+
+That makes "done" slower than ego prefers.
+
+It often includes the unglamorous work of documenting decisions, closing loops, clarifying expectations, and making sure the burden does not simply slide onto someone else the moment you feel finished.
+
+Faithful completion rarely looks dramatic. It looks clear.
+
+It looks like work that can stand without constant rescue.
+
+It looks like a leader who understands that their job is not just to create motion, but to leave order behind.

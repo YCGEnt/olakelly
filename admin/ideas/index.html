@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full dark-mode">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ideas Admin | Ola Kelly</title>
+
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Allura&family=Lato:wght@300;400;700&family=Playfair+Display:wght@600;700&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../../favicon-16x16.png">
+  <link rel="stylesheet" href="../../styles/main.css?v=20260325b">
+</head>
+<body class="h-full dark-mode">
+  <main class="admin-main">
+    <section class="admin-shell">
+      <div class="admin-utility-bar">
+        <button type="button" class="admin-logout-link is-hidden" id="adminLogoutBtn">Logout</button>
+        <button type="button" class="theme-toggle dark" id="adminThemeToggle" aria-label="Toggle dark mode">
+          <i data-lucide="sun" class="sun-icon"></i>
+          <i data-lucide="moon" class="moon-icon"></i>
+        </button>
+      </div>
+
+      <div class="admin-login-panel" id="adminLoginPanel">
+        <p class="admin-kicker">Private Publishing</p>
+        <h1 class="font-heading admin-title">Ideas Admin</h1>
+        <p class="font-body admin-copy">Write, preview, and publish Ideas using the same template as the live site.</p>
+        <p class="font-body admin-login-note">Private publishing environment</p>
+        <form id="adminLoginForm" class="admin-form admin-login-form">
+          <div class="admin-field admin-login-field">
+            <label class="admin-label" for="adminPassword">Password</label>
+            <input id="adminPassword" name="password" type="password" class="admin-input" autocomplete="current-password" required>
+            <p class="admin-hint">Private admin access</p>
+          </div>
+          <button type="submit" class="btn-primary">ENTER ADMIN</button>
+        </form>
+        <p id="adminLoginMessage" class="admin-message" aria-live="polite"></p>
+      </div>
+
+      <div class="admin-editor-shell is-hidden" id="adminEditorShell">
+        <section class="admin-editor-panel admin-load-panel">
+          <div class="admin-panel-head">
+            <p class="admin-kicker">Edit Existing Idea</p>
+          </div>
+
+          <div class="admin-load-grid">
+            <label class="admin-field">
+              <span class="admin-label">Slug</span>
+              <input class="admin-input" type="text" id="existingPostSlug" placeholder="what-done-actually-means-in-stewardship">
+            </label>
+
+            <div class="admin-load-action">
+              <button type="button" class="btn-secondary" id="loadExistingPostBtn">Load</button>
+            </div>
+
+            <label class="admin-field admin-load-dropdown">
+              <span class="admin-label">Recent posts</span>
+              <select class="admin-input" id="recentPostsSelect">
+                <option value="">Select a recent post</option>
+              </select>
+            </label>
+          </div>
+
+          <p id="loadExistingPostMessage" class="admin-message admin-inline-message" aria-live="polite"></p>
+        </section>
+
+        <div class="admin-editor-grid">
+          <form id="ideasAdminForm" class="admin-editor-form">
+            <aside class="admin-sidebar-panel">
+              <section class="admin-editor-panel admin-section-panel">
+                <div class="admin-panel-head">
+                  <p class="admin-kicker">Core</p>
+                </div>
+
+                <div class="admin-section-stack">
+                  <label class="admin-field">
+                    <span class="admin-label">Title</span>
+                    <input class="admin-input" type="text" name="title" id="postTitle" required>
+                  </label>
+
+                  <label class="admin-field">
+                    <span class="admin-label">Subtitle</span>
+                    <input class="admin-input" type="text" name="subtitle">
+                  </label>
+
+                  <label class="admin-field">
+                    <span class="admin-label-row">
+                      <span class="admin-label">Slug</span>
+                      <button type="button" class="admin-inline-action is-hidden" id="editSlugBtn">Edit slug</button>
+                    </span>
+                    <input class="admin-input" type="text" name="slug" id="postSlug">
+                  </label>
+
+                  <label class="admin-field">
+                    <span class="admin-label">Category</span>
+                    <input class="admin-input" type="text" name="category" value="STEWARD Framework" required>
+                  </label>
+
+                  <label class="admin-field">
+                    <span class="admin-label">Tags</span>
+                    <input class="admin-input" type="text" name="tags" placeholder="Stewardship, Leadership, Capacity">
+                  </label>
+                </div>
+              </section>
+
+              <section class="admin-editor-panel admin-section-panel">
+                <div class="admin-panel-head">
+                  <p class="admin-kicker">Summary</p>
+                </div>
+
+                <div class="admin-section-stack">
+                  <label class="admin-field">
+                    <span class="admin-label">Excerpt</span>
+                    <textarea class="admin-textarea admin-textarea-sm" name="excerpt" maxlength="200" required></textarea>
+                    <span class="admin-hint">Target 160 to 200 characters.</span>
+                  </label>
+
+                  <label class="admin-field">
+                    <span class="admin-label">Intent</span>
+                    <input class="admin-input" type="text" name="intent" placeholder="Define: what 'done' actually means in stewardship">
+                    <span class="admin-hint">Suggested pattern: Explore, Define, or Apply.</span>
+                  </label>
+                </div>
+              </section>
+
+              <section class="admin-editor-panel admin-section-panel">
+                <div class="admin-panel-head">
+                  <p class="admin-kicker">Publishing</p>
+                </div>
+
+                <div class="admin-section-stack">
+                  <div class="admin-stats-meta admin-stats-row-compact">
+                    <div class="admin-stat"><span>Slug</span><strong id="previewSlug">-</strong></div>
+                    <div class="admin-stats-inline">
+                      <div class="admin-stat"><span>Read time</span><strong id="previewReadTime">-</strong></div>
+                      <div class="admin-stat"><span>Word count</span><strong id="previewWordCount">-</strong></div>
+                    </div>
+                  </div>
+
+                  <div class="admin-publishing-row">
+                    <label class="admin-field">
+                      <span class="admin-label">Status</span>
+                      <select class="admin-input" name="status" id="postStatus">
+                        <option value="draft">Draft</option>
+                        <option value="published">Published</option>
+                      </select>
+                    </label>
+
+                    <label class="admin-field">
+                      <span class="admin-label">Publish date</span>
+                      <input class="admin-input" type="date" name="date">
+                    </label>
+                  </div>
+
+                  <div class="admin-toggle-group">
+                    <label class="admin-toggle"><input type="checkbox" name="show_date" checked> <span>Show publish date</span></label>
+                    <label class="admin-toggle"><input type="checkbox" name="show_updated_date"> <span>Show updated date</span></label>
+                    <label class="admin-toggle"><input type="checkbox" name="featured"> <span>Featured</span></label>
+                    <label class="admin-toggle"><input type="checkbox" name="homepage_featured"> <span>Homepage featured</span></label>
+                  </div>
+
+                  <label class="admin-field">
+                    <span class="admin-label">Homepage order</span>
+                    <select class="admin-input" name="homepage_order" id="homepageOrderInput" disabled>
+                      <option value="">Select a position</option>
+                      <option value="1">Position 1</option>
+                      <option value="2">Position 2</option>
+                      <option value="3">Position 3</option>
+                    </select>
+                  </label>
+                </div>
+              </section>
+
+              <details class="admin-editor-panel admin-section-panel admin-disclosure">
+                <summary class="admin-disclosure-summary">
+                  <span class="admin-kicker">SEO</span>
+                </summary>
+
+                <div class="admin-section-stack admin-disclosure-body">
+                  <label class="admin-field">
+                    <span class="admin-label">SEO title</span>
+                    <input class="admin-input" type="text" name="seo_title">
+                  </label>
+
+                  <label class="admin-field">
+                    <span class="admin-label">SEO description</span>
+                    <textarea class="admin-textarea admin-textarea-sm" name="seo_description"></textarea>
+                  </label>
+
+                  <label class="admin-field">
+                    <span class="admin-label">Canonical URL</span>
+                    <input class="admin-input" type="url" name="canonical_url">
+                  </label>
+                </div>
+              </details>
+
+              <details class="admin-editor-panel admin-section-panel admin-disclosure">
+                <summary class="admin-disclosure-summary">
+                  <span class="admin-kicker">Media</span>
+                </summary>
+
+                <div class="admin-section-stack admin-disclosure-body">
+                  <label class="admin-field">
+                    <span class="admin-label">Cover image</span>
+                    <input class="admin-input admin-file-input" type="file" name="cover_image_file" accept="image/png,image/jpeg,image/webp,image/gif">
+                  </label>
+
+                  <label class="admin-field">
+                    <span class="admin-label">Cover image alt</span>
+                    <input class="admin-input" type="text" name="cover_image_alt">
+                  </label>
+                </div>
+              </details>
+
+              <input type="hidden" name="id" id="postId">
+              <input type="hidden" name="draft_id" id="draftId">
+              <input type="hidden" name="original_slug" id="originalSlug">
+              <input type="hidden" name="published_slug" id="publishedSlug">
+              <input type="hidden" name="cover_image" id="coverImagePath">
+              <input type="hidden" name="related_posts" id="relatedPostsInput">
+            </aside>
+
+            <section class="admin-editor-main">
+              <div class="admin-editor-panel admin-writing-panel">
+                <div class="admin-writing-head">
+                  <div class="admin-panel-head">
+                    <p class="admin-kicker">Draft or Publish</p>
+                    <p class="admin-editing-state is-hidden" id="editingStateLabel"></p>
+                    <h2 class="font-heading admin-panel-title" id="editorHeading">New Idea</h2>
+                  </div>
+
+                  <div class="admin-action-row">
+                    <span class="admin-save-status" id="saveStatus" aria-live="polite"></span>
+                    <div class="admin-action-buttons">
+                      <button type="submit" class="btn-secondary" id="saveDraftBtn">Save Draft</button>
+                      <button type="button" class="btn-primary" id="publishPostBtn">Publish</button>
+                    </div>
+                  </div>
+                </div>
+
+                <label class="admin-field admin-content-field">
+                  <span class="admin-label">Content</span>
+                  <div class="admin-toolbar" role="toolbar" aria-label="Markdown formatting toolbar">
+                    <button type="button" class="admin-toolbar-button" data-format-action="bold" aria-label="Bold" title="Bold">
+                      <i data-lucide="bold"></i>
+                    </button>
+                    <button type="button" class="admin-toolbar-button" data-format-action="italic" aria-label="Italic" title="Italic">
+                      <i data-lucide="italic"></i>
+                    </button>
+                    <button type="button" class="admin-toolbar-button" data-format-action="link" aria-label="Link" title="Link">
+                      <i data-lucide="link"></i>
+                    </button>
+                    <button type="button" class="admin-toolbar-button" data-format-action="heading" aria-label="Heading" title="Heading">
+                      <i data-lucide="heading"></i>
+                    </button>
+                    <button type="button" class="admin-toolbar-button" data-format-action="bullet" aria-label="Bullet list" title="Bullet list">
+                      <i data-lucide="list"></i>
+                    </button>
+                    <button type="button" class="admin-toolbar-button" data-format-action="numbered" aria-label="Numbered list" title="Numbered list">
+                      <i data-lucide="list-ordered"></i>
+                    </button>
+                    <button type="button" class="admin-toolbar-button" data-format-action="quote" aria-label="Quote" title="Quote">
+                      <i data-lucide="quote"></i>
+                    </button>
+                    <button type="button" class="admin-toolbar-button" data-format-action="divider" aria-label="Divider" title="Divider">
+                      <i data-lucide="minus"></i>
+                    </button>
+                  </div>
+                  <textarea class="admin-textarea admin-editor-textarea" name="content" id="postContent" required></textarea>
+                </label>
+              </div>
+
+              <section class="admin-preview-panel">
+                <div class="admin-panel-head admin-preview-head">
+                  <div>
+                    <p class="admin-kicker">Live Template Preview</p>
+                    <h2 class="font-heading admin-panel-title">Live Preview</h2>
+                  </div>
+                  <button type="button" class="admin-preview-refresh" id="previewPostBtn" aria-label="Refresh preview">
+                    <i data-lucide="refresh-cw"></i>
+                  </button>
+                </div>
+                <div class="admin-preview-placeholder" id="previewPlaceholder">Preview will appear here as you write</div>
+                <div class="admin-preview-error is-hidden" id="previewError" aria-live="polite">Preview could not be generated.</div>
+                <iframe id="previewFrame" class="admin-preview-frame is-hidden" title="Live site preview"></iframe>
+              </section>
+
+              <p id="adminEditorMessage" class="admin-message" aria-live="polite"></p>
+            </section>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="../../scripts/admin-ideas.js?v=20260329a"></script>
+</body>
+</html>

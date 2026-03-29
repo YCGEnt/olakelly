@@ -1,0 +1,718 @@
+"use strict";
+
+const crypto = require("crypto");
+const path = require("path");
+const matter = require("gray-matter");
+const { computePost, renderPostPage, serializeFrontMatter } = require("../../lib/blog");
+
+const COOKIE_NAME = "ideas_admin_session";
+const SESSION_TTL_SECONDS = 60 * 60 * 4;
+const DRAFT_SCHEMA_VERSION = 1;
+
+function sendJson(res, statusCode, payload, headers = {}) {
+  Object.entries({
+    "Content-Type": "application/json; charset=utf-8",
+    ...headers
+  }).forEach(([key, value]) => res.setHeader(key, value));
+  res.statusCode = statusCode;
+  res.end(JSON.stringify(payload));
+}
+
+function readJsonBody(req) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    req.on("data", (chunk) => chunks.push(chunk));
+    req.on("end", () => {
+      try {
+        const raw = Buffer.concat(chunks).toString("utf8");
+        resolve(raw ? JSON.parse(raw) : {});
+      } catch (error) {
+        reject(error);
+      }
+    });
+    req.on("error", reject);
+  });
+}
+
+function createSessionToken(secret) {
+  const expiresAt = Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS;
+  const payload = `${expiresAt}`;
+  const signature = crypto.createHmac("sha256", secret).update(payload).digest("hex");
+  return `${payload}.${signature}`;
+}
+
+function verifySessionToken(token, secret) {
+  if (!token || !secret) return false;
+  const [expiresAt, signature] = String(token).split(".");
+  if (!expiresAt || !signature) return false;
+  if (Number(expiresAt) < Math.floor(Date.now() / 1000)) return false;
+  const expected = crypto.createHmac("sha256", secret).update(expiresAt).digest("hex");
+  try {
+    return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+  } catch (_error) {
+    return false;
+  }
+}
+
+function parseCookies(cookieHeader) {
+  return String(cookieHeader || "")
+    .split(";")
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .reduce((accumulator, entry) => {
+      const separatorIndex = entry.indexOf("=");
+      if (separatorIndex === -1) return accumulator;
+      const key = entry.slice(0, separatorIndex).trim();
+      const value = entry.slice(separatorIndex + 1).trim();
+      accumulator[key] = decodeURIComponent(value);
+      return accumulator;
+    }, {});
+}
+
+function requireSession(req, res) {
+  const secret = process.env.IDEAS_ADMIN_SESSION_SECRET;
+  const cookies = parseCookies(req.headers.cookie);
+  if (!verifySessionToken(cookies[COOKIE_NAME], secret)) {
+    sendJson(res, 401, { error: "Unauthorized." });
+    return false;
+  }
+  return true;
+}
+
+function derivePreviewExcerpt(content) {
+  return String(content || "")
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/!\[([^\]]*)\]\([^)]+\)/g, "$1")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/(^|\n)\s{0,3}(#{1,6}|\*|-|\+|\d+\.)\s+/g, " ")
+    .replace(/(^|\n)\s{0,3}>\s?/g, " ")
+    .replace(/[*_~>#-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 200);
+}
+
+function buildPreviewPost(body) {
+  const previewExcerpt = String(body.excerpt || "").trim() || derivePreviewExcerpt(body.content);
+
+  return computePost(
+    {
+      id: body.id || `preview-${Date.now()}`,
+      title: body.title,
+      subtitle: body.subtitle,
+      slug: body.slug || body.title,
+      status: body.status || "draft",
+      featured: Boolean(body.featured),
+      homepage_featured: Boolean(body.homepage_featured),
+      homepage_order: body.homepage_order,
+      date: body.date || new Date().toISOString(),
+      updated: new Date().toISOString(),
+      category: body.category || "STEWARD Framework",
+      category_slug: body.category_slug || "steward-framework",
+      tags: body.tags || [],
+      excerpt: previewExcerpt,
+      intent: body.intent || "",
+      seo_title: body.seo_title || body.title,
+      seo_description: body.seo_description || previewExcerpt,
+      canonical_url: body.canonical_url || "",
+      show_date: body.show_date !== false,
+      show_updated_date: Boolean(body.show_updated_date),
+      cover_image: body.cover_image || "",
+      cover_image_alt: body.cover_image_alt || "",
+      related_posts: body.related_posts || []
+    },
+    body.content || ""
+  );
+}
+
+function renderPreviewHtml(body) {
+  const previewPost = buildPreviewPost(body);
+  return {
+    post: previewPost,
+    html: renderPostPage(previewPost, [])
+  };
+}
+
+function getBlobClient() {
+  try {
+    return require("@vercel/blob");
+  } catch (_error) {
+    throw new Error("Draft storage requires the @vercel/blob package to be installed.");
+  }
+}
+
+function getGitHubConfig() {
+  const token = process.env.GITHUB_TOKEN;
+  const owner = process.env.GITHUB_REPO_OWNER;
+  const repo = process.env.GITHUB_REPO_NAME;
+  const branch = process.env.VERCEL_PRODUCTION_GIT_BRANCH;
+
+  if (!token || !owner || !repo || !branch) {
+    throw new Error("Missing GitHub publishing environment variables.");
+  }
+
+  return { token, owner, repo, branch };
+}
+
+function createGitHubApiUrl(resourcePath) {
+  const { owner, repo } = getGitHubConfig();
+  return `https://api.github.com/repos/${owner}/${repo}/${resourcePath.replace(/^\/+/, "")}`;
+}
+
+async function githubApiRequest(resourcePath, options = {}) {
+  const { token } = getGitHubConfig();
+  const response = await fetch(createGitHubApiUrl(resourcePath), {
+    method: options.method || "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/vnd.github+json",
+      "Content-Type": "application/json",
+      "User-Agent": "olakelly-ideas-admin",
+      ...(options.headers || {})
+    },
+    body: options.body ? JSON.stringify(options.body) : undefined
+  });
+
+  if (response.status === 404 && options.allowNotFound) return null;
+  if (!response.ok) {
+    const error = new Error(`GitHub request failed: ${response.status} ${await response.text()}`);
+    error.statusCode = response.status;
+    throw error;
+  }
+
+  if (response.status === 204) return null;
+  return response.json();
+}
+
+async function assertGitHubBranchExists() {
+  const { branch } = getGitHubConfig();
+  await githubApiRequest(`branches/${encodeURIComponent(branch)}`);
+}
+
+async function githubContentsRequest(filePath, method = "GET", body, options = {}) {
+  const { branch } = getGitHubConfig();
+  const normalizedPath = filePath.replace(/\\/g, "/");
+  const resourcePath = method === "GET"
+    ? `contents/${normalizedPath}?ref=${encodeURIComponent(branch)}`
+    : `contents/${normalizedPath}`;
+
+  return githubApiRequest(resourcePath, {
+    method,
+    allowNotFound: options.allowNotFound,
+    body: method === "GET" ? undefined : { branch, ...body }
+  });
+}
+
+async function getGitHubFile(filePath) {
+  const response = await githubContentsRequest(filePath, "GET", undefined, { allowNotFound: true });
+  if (!response) return null;
+  return {
+    sha: response.sha,
+    content: Buffer.from(response.content || "", "base64").toString("utf8"),
+    html_url: response.html_url || null
+  };
+}
+
+async function putGitHubFile(filePath, content, message, sha) {
+  const payload = {
+    message,
+    content: Buffer.isBuffer(content) ? content.toString("base64") : Buffer.from(String(content), "utf8").toString("base64")
+  };
+  if (sha) payload.sha = sha;
+  return githubContentsRequest(filePath, "PUT", payload);
+}
+
+async function deleteGitHubFile(filePath, message, sha) {
+  if (!sha) {
+    const existing = await getGitHubFile(filePath);
+    if (!existing) return null;
+    sha = existing.sha;
+  }
+  return githubContentsRequest(filePath, "DELETE", { message, sha });
+}
+
+function parseExistingSource(source) {
+  const separator = "\n---\n";
+  const secondIndex = source.indexOf(separator, 4);
+  if (secondIndex === -1) return {};
+  return matter(source).data;
+}
+
+function parsePostSource(source) {
+  const parsed = matter(String(source || ""));
+  const frontMatter = parsed.data || {};
+
+  return {
+    id: String(frontMatter.id || "").trim(),
+    title: String(frontMatter.title || "").trim(),
+    subtitle: String(frontMatter.subtitle || "").trim(),
+    slug: String(frontMatter.slug || "").trim(),
+    status: String(frontMatter.status || "draft").trim(),
+    featured: Boolean(frontMatter.featured),
+    homepage_featured: Boolean(frontMatter.homepage_featured),
+    homepage_order: Number.isFinite(Number(frontMatter.homepage_order)) ? Number(frontMatter.homepage_order) : null,
+    date: String(frontMatter.date || "").slice(0, 10),
+    updated: String(frontMatter.updated || "").trim(),
+    category: String(frontMatter.category || "").trim(),
+    category_slug: String(frontMatter.category_slug || "").trim(),
+    tags: Array.isArray(frontMatter.tags) ? frontMatter.tags : [],
+    excerpt: String(frontMatter.excerpt || "").trim(),
+    intent: String(frontMatter.intent || "").trim(),
+    seo_title: String(frontMatter.seo_title || "").trim(),
+    seo_description: String(frontMatter.seo_description || "").trim(),
+    canonical_url: String(frontMatter.canonical_url || "").trim(),
+    show_date: frontMatter.show_date !== false,
+    show_updated_date: Boolean(frontMatter.show_updated_date),
+    cover_image: String(frontMatter.cover_image || "").trim(),
+    cover_image_alt: String(frontMatter.cover_image_alt || "").trim(),
+    related_posts: Array.isArray(frontMatter.related_posts) ? frontMatter.related_posts : [],
+    content: String(parsed.content || "").trim()
+  };
+}
+
+async function listGitHubPostFiles() {
+  const response = await githubContentsRequest("content/posts", "GET", undefined, { allowNotFound: true });
+  if (!Array.isArray(response)) return [];
+  return response
+    .filter((entry) => entry && entry.type === "file" && /\.md$/i.test(entry.name))
+    .map((entry) => ({
+      name: entry.name,
+      path: entry.path || `content/posts/${entry.name}`
+    }));
+}
+
+async function getPostSourceBySlug(slug) {
+  const normalizedSlug = String(slug || "").trim();
+  if (!normalizedSlug) return null;
+  const sourceFile = await getGitHubFile(`content/posts/${normalizedSlug}.md`);
+  if (!sourceFile) return null;
+  return parsePostSource(sourceFile.content);
+}
+
+async function getRecentPosts(limit = 5) {
+  const files = await listGitHubPostFiles();
+  const sources = await Promise.all(
+    files.map(async (file) => {
+      const sourceFile = await getGitHubFile(file.path);
+      if (!sourceFile) return null;
+      const post = parsePostSource(sourceFile.content);
+      return {
+        title: post.title,
+        slug: post.slug,
+        status: post.status,
+        date: post.date
+      };
+    })
+  );
+
+  return sources
+    .filter((post) => post && post.slug && post.title && post.date)
+    .sort((left, right) => new Date(right.date) - new Date(left.date))
+    .slice(0, limit);
+}
+
+async function getAllPostSources() {
+  const files = await listGitHubPostFiles();
+  const posts = await Promise.all(
+    files.map(async (file) => {
+      const sourceFile = await getGitHubFile(file.path);
+      if (!sourceFile) return null;
+      const post = parsePostSource(sourceFile.content);
+      return {
+        filePath: file.path,
+        ...post
+      };
+    })
+  );
+
+  return posts.filter(Boolean);
+}
+
+async function normalizeHomepageOrdering(nextPost, originalSlug) {
+  const shouldPosition = nextPost.homepage_featured && Number.isInteger(nextPost.homepage_order) && nextPost.homepage_order >= 1 && nextPost.homepage_order <= 3;
+  if (!shouldPosition) {
+    return [];
+  }
+
+  const allPosts = await getAllPostSources();
+  const competingPosts = allPosts
+    .filter((post) => post.slug !== nextPost.slug && post.slug !== originalSlug)
+    .filter((post) => post.homepage_featured && Number.isInteger(post.homepage_order) && post.homepage_order >= 1)
+    .sort((left, right) => left.homepage_order - right.homepage_order);
+
+  const reordered = [];
+  const seenSlugs = new Set();
+
+  competingPosts.forEach((post) => {
+    if (!seenSlugs.has(post.slug)) {
+      reordered.push({
+        ...post,
+        homepage_featured: true,
+        homepage_order: post.homepage_order
+      });
+      seenSlugs.add(post.slug);
+    }
+  });
+
+  const insertIndex = Math.max(0, Math.min(nextPost.homepage_order - 1, reordered.length));
+  reordered.splice(insertIndex, 0, { slug: nextPost.slug });
+
+  const updates = [];
+
+  reordered.forEach((entry, index) => {
+    const position = index + 1;
+    if (entry.slug === nextPost.slug) return;
+    const sourcePost = competingPosts.find((post) => post.slug === entry.slug);
+    if (!sourcePost) return;
+
+    const nextHomepageFeatured = position <= 3;
+    const nextHomepageOrder = nextHomepageFeatured ? position : null;
+
+    if (sourcePost.homepage_featured !== nextHomepageFeatured || sourcePost.homepage_order !== nextHomepageOrder) {
+      updates.push({
+        ...sourcePost,
+        homepage_featured: nextHomepageFeatured,
+        homepage_order: nextHomepageOrder
+      });
+    }
+  });
+
+  return updates;
+}
+
+async function updateRedirectsIfNeeded(originalSlug, nextSlug, commitMessage) {
+  if (!originalSlug || !nextSlug || originalSlug === nextSlug) return null;
+  const redirectsPath = "content/redirects.json";
+  const existingRedirects = await getGitHubFile(redirectsPath);
+  const payload = existingRedirects ? JSON.parse(existingRedirects.content) : { redirects: [] };
+  const filtered = Array.isArray(payload.redirects) ? payload.redirects.filter((entry) => entry && entry.from !== originalSlug) : [];
+  filtered.push({ from: originalSlug, to: nextSlug });
+  return putGitHubFile(
+    redirectsPath,
+    JSON.stringify({ redirects: filtered }, null, 2),
+    commitMessage,
+    existingRedirects ? existingRedirects.sha : undefined
+  );
+}
+
+function decodeDataUrl(dataUrl) {
+  const match = /^data:(.+);base64,(.+)$/.exec(String(dataUrl || ""));
+  if (!match) return null;
+  return {
+    mimeType: match[1],
+    buffer: Buffer.from(match[2], "base64")
+  };
+}
+
+function extensionFromMimeType(mimeType) {
+  if (mimeType === "image/jpeg") return "jpg";
+  if (mimeType === "image/png") return "png";
+  if (mimeType === "image/webp") return "webp";
+  if (mimeType === "image/gif") return "gif";
+  return "bin";
+}
+
+function getDraftId(body) {
+  return String(body.draft_id || crypto.randomUUID()).trim();
+}
+
+function buildDraftPayload(body, draftId, overrides = {}) {
+  const updatedAt = overrides.updated_at || new Date().toISOString();
+  return {
+    version: DRAFT_SCHEMA_VERSION,
+    id: String(overrides.id ?? body.id ?? "").trim(),
+    draft_id: draftId,
+    title: String(overrides.title ?? body.title ?? "").trim(),
+    slug: String(overrides.slug ?? body.slug ?? body.title ?? "").trim(),
+    published_slug: String(overrides.published_slug ?? body.published_slug ?? "").trim() || null,
+    status: String(overrides.status ?? body.status ?? "draft").trim(),
+    updated_at: updatedAt,
+    payload: {
+      ...body,
+      draft_id: draftId,
+      published_slug: String(overrides.published_slug ?? body.published_slug ?? "").trim() || null
+    }
+  };
+}
+
+async function saveDraftToBlob(body, overrides = {}) {
+  const { put } = getBlobClient();
+  const draftId = getDraftId({ ...body, draft_id: overrides.draft_id || body.draft_id });
+  const draft = buildDraftPayload(body, draftId, overrides);
+  const pathname = `drafts/posts/${draftId}.json`;
+
+  await put(pathname, JSON.stringify(draft, null, 2), {
+    access: "private",
+    contentType: "application/json",
+    addRandomSuffix: false
+  });
+
+  return draft;
+}
+
+function buildPublishPost(body, publishedAt) {
+  return computePost(
+    {
+      id: String(body.id || body.draft_id || `ideas-${Date.now()}`).trim(),
+      title: body.title,
+      subtitle: body.subtitle,
+      slug: body.slug || body.title,
+      status: body.status,
+      featured: Boolean(body.featured),
+      homepage_featured: Boolean(body.homepage_featured),
+      homepage_order: body.homepage_order,
+      date: body.date || publishedAt,
+      updated: publishedAt,
+      category: body.category || "STEWARD Framework",
+      category_slug: body.category_slug || "steward-framework",
+      tags: body.tags || [],
+      excerpt: body.excerpt,
+      intent: body.intent || "",
+      seo_title: body.seo_title || `${body.title} | Ola Kelly`,
+      seo_description: body.seo_description || body.excerpt,
+      canonical_url: body.canonical_url || "",
+      show_date: body.show_date !== false,
+      show_updated_date: Boolean(body.show_updated_date),
+      cover_image: body.cover_image || "",
+      cover_image_alt: body.cover_image_alt || "",
+      related_posts: body.related_posts || []
+    },
+    body.content || ""
+  );
+}
+
+function buildPublishCommitMessage(post) {
+  return `Publish: ${post.title} (${post.slug})`;
+}
+
+function createConflictError(message) {
+  const error = new Error(message);
+  error.statusCode = 409;
+  return error;
+}
+
+function isSameLineage(existingPost, nextPost, publishedSlug) {
+  if (!existingPost) return false;
+  if (existingPost.id && nextPost.id && existingPost.id === nextPost.id) return true;
+  if (publishedSlug && existingPost.slug === publishedSlug) return true;
+  return false;
+}
+
+function isLegacyDraftMatch(existingPost, nextPost, requestedPublishedSlug) {
+  if (!existingPost || requestedPublishedSlug) return false;
+
+  const existingTitle = String(existingPost.title || "").trim().toLowerCase();
+  const nextTitle = String(nextPost.title || "").trim().toLowerCase();
+  const existingSlug = String(existingPost.slug || "").trim();
+  const nextSlug = String(nextPost.slug || "").trim();
+
+  return Boolean(existingSlug && nextSlug && existingSlug === nextSlug && existingTitle && nextTitle && existingTitle === nextTitle);
+}
+
+function extractCommitInfo(result) {
+  if (!result || !result.commit) return { commit_sha: null, commit_url: null };
+  return {
+    commit_sha: result.commit.sha || null,
+    commit_url: result.commit.html_url || null
+  };
+}
+
+function getVercelDeployHookUrl() {
+  return String(process.env.VERCEL_DEPLOY_HOOK_URL || "").trim();
+}
+
+async function triggerVercelDeployHook() {
+  const hookUrl = getVercelDeployHookUrl();
+  if (!hookUrl) {
+    return {
+      deploy_hook_triggered: false,
+      deploy_hook_configured: false,
+      deploy_hook_warning: "VERCEL_DEPLOY_HOOK_URL is not configured."
+    };
+  }
+
+  const response = await fetch(hookUrl, { method: "POST" });
+  if (!response.ok) {
+    return {
+      deploy_hook_triggered: false,
+      deploy_hook_configured: true,
+      deploy_hook_warning: `Vercel deploy hook failed: ${response.status}.`
+    };
+  }
+
+  return {
+    deploy_hook_triggered: true,
+    deploy_hook_configured: true,
+    deploy_hook_warning: null
+  };
+}
+
+async function publishPostToGitHub(body) {
+  await assertGitHubBranchExists();
+
+  const publishedAt = new Date().toISOString();
+  const requestedPublishedSlug = String(body.published_slug || "").trim() || null;
+  const nextBasePost = buildPublishPost(body, publishedAt);
+  const commitMessage = buildPublishCommitMessage(nextBasePost);
+
+  const livePath = requestedPublishedSlug ? `content/posts/${requestedPublishedSlug}.md` : null;
+  const targetPath = `content/posts/${nextBasePost.slug}.md`;
+  const isSlugChange = Boolean(requestedPublishedSlug && requestedPublishedSlug !== nextBasePost.slug);
+
+  if (isSlugChange && !body.confirm_slug_change) {
+    throw createConflictError("Published slug changes require explicit confirmation.");
+  }
+
+  const [liveSource, targetSource] = await Promise.all([
+    livePath ? getGitHubFile(livePath) : Promise.resolve(null),
+    getGitHubFile(targetPath)
+  ]);
+
+  const livePost = liveSource ? parsePostSource(liveSource.content) : null;
+  const targetPost = targetSource ? parsePostSource(targetSource.content) : null;
+  const targetBelongsToSameLineage = isSameLineage(targetPost, nextBasePost, requestedPublishedSlug)
+    || isLegacyDraftMatch(targetPost, nextBasePost, requestedPublishedSlug);
+
+  if (targetSource && !targetBelongsToSameLineage && (!requestedPublishedSlug || requestedPublishedSlug !== nextBasePost.slug)) {
+    throw createConflictError(`A different post already uses the slug "${nextBasePost.slug}".`);
+  }
+
+  let coverImagePath = nextBasePost.cover_image;
+  let lastCommitInfo = { commit_sha: null, commit_url: null };
+  let hasBinaryChanges = false;
+
+  if (body.cover_image_data) {
+    const decoded = decodeDataUrl(body.cover_image_data);
+    if (!decoded) {
+      throw new Error("Invalid cover image format.");
+    }
+    const extension = extensionFromMimeType(decoded.mimeType);
+    coverImagePath = `/assets/posts/${nextBasePost.slug}/cover.${extension}`;
+    const assetPath = path.posix.join("assets", "posts", nextBasePost.slug, `cover.${extension}`);
+    const existingAsset = await getGitHubFile(assetPath);
+    const uploadResult = await putGitHubFile(assetPath, decoded.buffer, commitMessage, existingAsset ? existingAsset.sha : undefined);
+    lastCommitInfo = extractCommitInfo(uploadResult);
+    hasBinaryChanges = true;
+  }
+
+  const nextPost = {
+    ...nextBasePost,
+    cover_image: coverImagePath
+  };
+  const source = serializeFrontMatter(nextPost);
+
+  const homepageUpdates = await normalizeHomepageOrdering(nextPost, requestedPublishedSlug || nextPost.slug);
+  const canUseTargetPathForIdempotency = !isSlugChange;
+  const targetSourceMatches = Boolean(targetSource && targetSource.content === source);
+  const noChanges = canUseTargetPathForIdempotency
+    && targetSourceMatches
+    && (targetBelongsToSameLineage || !requestedPublishedSlug)
+    && homepageUpdates.length === 0
+    && !hasBinaryChanges;
+
+  if (!requestedPublishedSlug && targetSource && !targetBelongsToSameLineage) {
+    throw createConflictError(`A different post already uses the slug "${nextPost.slug}".`);
+  }
+
+  if (noChanges) {
+    const deployHookResult = await triggerVercelDeployHook();
+    if (body.draft_id) {
+      await saveDraftToBlob(body, {
+        draft_id: body.draft_id,
+        id: nextPost.id,
+        slug: nextPost.slug,
+        published_slug: nextPost.slug,
+        status: nextPost.status,
+        updated_at: publishedAt
+      });
+    }
+
+    const { branch } = getGitHubConfig();
+    return {
+      id: nextPost.id,
+      slug: nextPost.slug,
+      published_slug: nextPost.slug,
+      branch,
+      commit_sha: null,
+      commit_url: null,
+      cover_image: nextPost.cover_image,
+      live_url: nextPost.url,
+      published_at: publishedAt,
+      no_changes: true,
+      message: deployHookResult.deploy_hook_triggered
+        ? "No content changes were needed. Vercel redeploy was triggered."
+        : (deployHookResult.deploy_hook_warning || "No changes to publish. Production already matches this content."),
+      ...deployHookResult,
+      reading_time: nextPost.reading_time,
+      word_count: nextPost.word_count
+    };
+  }
+
+  for (const post of homepageUpdates) {
+    const updateSource = serializeFrontMatter(post);
+    const existing = await getGitHubFile(`content/posts/${post.slug}.md`);
+    const updateResult = await putGitHubFile(`content/posts/${post.slug}.md`, updateSource, commitMessage, existing ? existing.sha : undefined);
+    lastCommitInfo = extractCommitInfo(updateResult);
+  }
+
+  const targetWriteResult = await putGitHubFile(targetPath, source, commitMessage, targetSource ? targetSource.sha : undefined);
+  lastCommitInfo = extractCommitInfo(targetWriteResult);
+
+  if (isSlugChange && requestedPublishedSlug) {
+    const redirectResult = await updateRedirectsIfNeeded(requestedPublishedSlug, nextPost.slug, commitMessage);
+    if (redirectResult) lastCommitInfo = extractCommitInfo(redirectResult);
+
+    if (liveSource) {
+      const deleteResult = await deleteGitHubFile(livePath, commitMessage, liveSource.sha);
+      if (deleteResult) lastCommitInfo = extractCommitInfo(deleteResult);
+    }
+  }
+
+  if (body.draft_id) {
+    await saveDraftToBlob(body, {
+      draft_id: body.draft_id,
+      id: nextPost.id,
+      slug: nextPost.slug,
+      published_slug: nextPost.slug,
+      status: nextPost.status,
+      updated_at: publishedAt
+    });
+  }
+
+  const deployHookResult = await triggerVercelDeployHook();
+  const { branch } = getGitHubConfig();
+  return {
+    id: nextPost.id,
+    slug: nextPost.slug,
+    published_slug: nextPost.slug,
+    branch,
+    ...lastCommitInfo,
+    cover_image: nextPost.cover_image,
+    live_url: nextPost.url,
+    published_at: publishedAt,
+    no_changes: false,
+    message: deployHookResult.deploy_hook_triggered
+      ? "Published successfully. Vercel deploy was triggered."
+      : `Published successfully, but deployment was not explicitly triggered. ${deployHookResult.deploy_hook_warning || ""}`.trim(),
+    ...deployHookResult,
+    reading_time: nextPost.reading_time,
+    word_count: nextPost.word_count
+  };
+}
+
+module.exports = {
+  COOKIE_NAME,
+  DRAFT_SCHEMA_VERSION,
+  SESSION_TTL_SECONDS,
+  buildDraftPayload,
+  createSessionToken,
+  getPostSourceBySlug,
+  getRecentPosts,
+  publishPostToGitHub,
+  readJsonBody,
+  renderPreviewHtml,
+  requireSession,
+  saveDraftToBlob,
+  sendJson
+};

@@ -1,0 +1,48 @@
+{
+  "version": "https://jsonfeed.org/version/1.1",
+  "title": "Ola Kelly Ideas",
+  "home_page_url": "https://olakelly.com",
+  "feed_url": "https://olakelly.com/feed.json",
+  "description": "Essays, frameworks, and reflections on leadership as stewardship.",
+  "items": [
+    {
+      "id": "ideas-001",
+      "url": "https://olakelly.com/ideas/what-done-actually-means-in-stewardship/",
+      "title": "What 'Done' Actually Means in Stewardship",
+      "summary": "In stewardship, done is not the moment work looks impressive. It is the moment responsibility has been carried to a faithful, sustainable finish.",
+      "content_html": "<p>For ambitious people, &quot;done&quot; is often a visual concept.</p><p>It looks like output, momentum, inboxes cleared, timelines met, and a public signal that something moved because we moved it.</p><p>But stewardship asks a more demanding question: was the responsibility carried well?</p><p>&quot;Done&quot; in stewardship is not simply the end of visible effort. It is the point where the work has been carried to a faithful finish without quietly damaging the judgment, relationships, or capacity that will be needed tomorrow.</p><p>That distinction matters because some work can be completed and still be handled poorly.</p><p>You can ship the project while burning credibility with the people who had to absorb your hurry.</p><p>You can accept the opportunity, deliver the keynote, lead the initiative, or make the decision and still leave behind unnecessary confusion, thin communication, or an exhausted team.</p><p>In other words, activity can end before responsibility does.</p><p>Stewardship treats completion as moral, not merely operational.</p><p>It asks whether the work was carried with enough clarity to reduce friction, enough restraint to avoid avoidable damage, and enough follow-through to leave the situation stronger than when it started.</p><p>That makes &quot;done&quot; slower than ego prefers.</p><p>It often includes the unglamorous work of documenting decisions, closing loops, clarifying expectations, and making sure the burden does not simply slide onto someone else the moment you feel finished.</p><p>Faithful completion rarely looks dramatic. It looks clear.</p><p>It looks like work that can stand without constant rescue.</p><p>It looks like a leader who understands that their job is not just to create motion, but to leave order behind.</p>",
+      "date_published": "2026-03-12T00:00:00.000Z",
+      "date_modified": "2026-03-12T09:00:00.000Z",
+      "reading_time": 2,
+      "word_count": 261,
+      "tags": ["Stewardship", "Execution", "Leadership"],
+      "authors": [{ "name": "Ola Kelly" }]
+    },
+    {
+      "id": "ideas-002",
+      "url": "https://olakelly.com/ideas/the-cost-of-a-quick-yes/",
+      "title": "The Cost of a Quick Yes",
+      "summary": "A fast yes can feel responsive, generous, and strategic. It can also conceal the trade-offs you have not yet named.",
+      "content_html": "<p>Some yeses are made before the mind has fully arrived.</p><p>They come from instinct, pressure, ego, courtesy, optimism, or the desire to look capable in real time.</p><p>That is what makes them dangerous. A quick yes often feels virtuous.</p><p>It reads as generous. Available. Strategic. Game.</p><p>But stewardship is suspicious of decisions made at the speed of impression management.</p><p>Every yes reallocates something.</p><p>Time shifts. Attention narrows. Energy gets assigned. Existing responsibilities inherit new friction.</p><p>When those costs remain unnamed, the decision feels cheap in the moment because someone else will pay for the difference later. Sometimes that someone is you. Sometimes it is your team. Often it is both.</p><p>This is why trade-off analysis matters.</p><p>The question is not merely whether an opportunity is good. The question is what it will displace if accepted.</p><p>Will it compress margin you already do not have?</p><p>Will it pull focus from work that matters more but looks less exciting?</p><p>Will it force important work into tired hours and make preventable mistakes more likely?</p><p>A slow yes is not a weak yes.</p><p>It is often the only kind of yes that can be trusted.</p><p>Thoughtful leaders do not delay because they are indecisive. They delay long enough to make sure the apparent opportunity is not quietly financing itself with future exhaustion.</p>",
+      "date_published": "2026-03-05T00:00:00.000Z",
+      "date_modified": "2026-03-05T09:00:00.000Z",
+      "reading_time": 1,
+      "word_count": 218,
+      "tags": ["Discernment", "Trade-Offs", "Leadership"],
+      "authors": [{ "name": "Ola Kelly" }]
+    },
+    {
+      "id": "ideas-003",
+      "url": "https://olakelly.com/ideas/when-capacity-is-the-leadership-issue/",
+      "title": "When Capacity Is the Leadership Issue",
+      "summary": "Leadership problems are not always failures of vision. Sometimes the issue is capacity that has been stretched past what careful stewardship can sustain.",
+      "content_html": "<p>Leaders are often taught to diagnose problems in strategic language.</p><p>We ask whether the vision is clear, the plan is coherent, the people are aligned, the incentives are right, or the communication has been strong enough.</p><p>Those are real questions.</p><p>But they are not the only questions.</p><p>Sometimes the leadership issue is capacity.</p><p>Not talent. Not conviction. Not even discipline.</p><p>Capacity.</p><p>The person leading may simply be carrying too much for too long, which means judgment becomes slower, patience becomes thinner, and complexity starts to feel personal instead of manageable.</p><p>This is why the energy audit inside the STEWARD Framework matters.</p><p>It forces a leader to ask whether the issue is truly inability or whether it is depletion hiding behind professionalism.</p><p>That distinction changes the response.</p><p>If the problem is clarity, you solve for clarity.</p><p>If the problem is commitment, you solve for commitment.</p><p>If the problem is capacity, then adding more pressure will only make the original problem more expensive.</p><p>Wise leadership does not romanticize strain.</p><p>It recognizes that sustained responsibility requires more than courage. It requires enough margin for clear thinking, measured response, and the recovery needed to keep showing up responsibly.</p><p>A leader who ignores capacity may still look strong for a while.</p><p>But eventually the deficit shows up somewhere: in judgment, in relationships, in tone, or in the quality of what gets carried forward.</p>",
+      "date_published": "2026-02-24T00:00:00.000Z",
+      "date_modified": "2026-02-24T09:00:00.000Z",
+      "reading_time": 2,
+      "word_count": 228,
+      "tags": ["Capacity", "Energy Audit", "Leadership"],
+      "authors": [{ "name": "Ola Kelly" }]
+    }
+  ]
+}

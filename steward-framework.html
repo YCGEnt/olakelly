@@ -15,7 +15,15 @@
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
 
-  <link rel="stylesheet" href="styles/main.css?v=20260316u">
+  <link rel="stylesheet" href="styles/main.css?v=20260325b">
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
+  <script>
+    window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/speed-insights/script.js"></script>
 </head>
 <body class="h-full dark-mode">
   <div id="app-wrapper" class="w-full h-full overflow-auto">
@@ -27,7 +35,7 @@
 
           <div class="hidden md:flex items-center desktop-nav">
             <a href="index.html#home" class="nav-link nav-link-text">Home</a>
-            <a href="index.html#ideas" class="nav-link nav-link-text">Ideas</a>
+            <a href="ideas/" class="nav-link nav-link-text">Ideas</a>
             <a href="steward-framework.html" class="nav-link nav-link-text is-current" aria-current="page">STEWARD Framework<sup>&trade;</sup></a>
             <a href="about.html" class="nav-link nav-link-text">About</a>
             <span class="nav-divider"></span>
@@ -58,7 +66,7 @@
 
         <div class="flex flex-col mobile-panel-links">
           <a href="index.html#home" class="font-heading mobile-nav-link-text">Home</a>
-          <a href="index.html#ideas" class="font-heading mobile-nav-link-text">Ideas</a>
+          <a href="ideas/" class="font-heading mobile-nav-link-text">Ideas</a>
           <a href="steward-framework.html" class="font-heading mobile-nav-link-text" aria-current="page">STEWARD Framework<sup>&trade;</sup></a>
           <a href="about.html" class="font-heading mobile-nav-link-text">About</a>
 
@@ -76,7 +84,7 @@
     </aside>
 
     <main id="main-content" class="about-page-main">
-      <section class="about-page-hero">
+      <section class="about-page-hero steward-framework-hero">
         <div class="container-shell">
           <div class="about-page-hero-inner">
             <p class="font-heading eyebrow-text">Framework</p>
@@ -87,18 +95,14 @@
         </div>
       </section>
 
-      <section class="content-section">
-        <div class="container-shell">
-          <div class="section-center-intro">
-            <p class="font-heading framework-question">Before I say yes, have I stewarded this decision?</p>
-            <p class="font-body body-copy">This question activates the framework. It is not meant to function as a checklist to complete once and move past, but as a cycle that helps leaders return to the decision from several angles. Its purpose is to evaluate commitments deliberately rather than reactively.</p>
-            <a href="/assets/steward-framework.pdf" target="_blank" class="btn-primary">Download the STEWARD Framework</a>
-          </div>
-        </div>
-      </section>
-
       <section id="framework" class="framework-section">
         <div class="container-shell">
+          <div class="trigger-cta-block">
+            <p class="font-heading framework-question">Before I say yes, have I stewarded this decision?</p>
+            <p class="font-body body-copy">This is the entry point. The STEWARD Framework is not a checklist&mdash;it is a cycle leaders return to when a decision deserves more than instinct.</p>
+            <a href="/assets/steward-framework.pdf" target="_blank" class="btn-primary">Download the STEWARD Framework</a>
+          </div>
+
           <div class="framework-shell">
             <div class="framework-visual-column">
               <div id="frameworkDiagram" class="framework-diagram" aria-label="The STEWARD Framework interactive decision cycle">
@@ -300,7 +304,7 @@
               <p class="font-body body-copy">Leadership becomes steadier when responsibility is examined before it is assumed. The goal is not hesitation for its own sake, but a more deliberate practice of saying yes only where clarity, capacity, and calling can hold.</p>
               <p class="font-body body-copy">This framework is one part of a larger conviction: influence should be carried as stewardship, not accumulated as status. More writing will continue to explore what that requires in practice.</p>
               <div class="about-page-actions">
-                <a href="index.html#ideas" class="btn-primary">Read the Ideas</a>
+                <a href="ideas/" class="btn-primary">Read the Ideas</a>
                 <a href="index.html#home" class="btn-secondary">Return Home</a>
               </div>
             </section>
@@ -320,13 +324,16 @@
             <p class="font-body footer-description">
               Practical ideas on influence, responsibility, and what leadership actually requires.
             </p>
+            <p class="font-body footer-linkedin-wrap">
+              <a href="https://www.linkedin.com/in/olaiya" class="footer-linkedin-link" target="_blank" rel="noreferrer">Thoughts in motion &rarr; LinkedIn</a>
+            </p>
           </div>
 
           <div class="footer-link-col">
             <h4 class="footer-col-title">Explore</h4>
             <nav class="footer-nav" aria-label="Footer navigation">
               <a href="index.html#home" class="footer-link">Home</a>
-              <a href="index.html#ideas" class="footer-link">Ideas</a>
+              <a href="ideas/" class="footer-link">Ideas</a>
               <a href="steward-framework.html" class="footer-link">STEWARD Framework<sup>&trade;</sup></a>
               <a href="about.html" class="footer-link">About</a>
             </nav>
@@ -349,6 +356,6 @@
     </footer>
   </div>
 
-  <script src="scripts/main.js?v=20260316w"></script>
+  <script src="scripts/main.js?v=20260325b"></script>
 </body>
 </html>

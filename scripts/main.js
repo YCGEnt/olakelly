@@ -74,7 +74,6 @@ const normalizedFrameworkSteps = frameworkLetterOrder
   .filter(Boolean);
 
 let activeFrameworkStep = null;
-let isSubmitting = false;
 let hasFrameworkAnimatedIn = false;
 let heroRotatorPhrases = [];
 
@@ -96,16 +95,10 @@ const mobileThemeToggle = document.getElementById("mobileThemeToggle");
 const htmlElement = document.documentElement;
 const bodyElement = document.body;
 
-const newsletterForm = document.getElementById("newsletterForm");
-const emailInput = document.getElementById("emailInput");
-const successMessage = document.getElementById("successMessage");
-const errorMessage = document.getElementById("errorMessage");
-const errorText = document.getElementById("errorText");
-const newsletterBtn = document.getElementById("newsletterBtn");
-
 const primaryCtaBtn = document.getElementById("primaryCtaBtn");
+const latestIdeasGrid = document.getElementById("latestIdeasGrid");
 
-const newsletterEndpoint = "";
+const SIGNUP_ENDPOINT = "/api/signup";
 const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
 function setHeroRotatorMetrics() {
@@ -272,32 +265,21 @@ function renderDirectionMarkers() {
   if (!frameworkDirectionMarkers) return;
 
   frameworkDirectionMarkers.innerHTML = "";
-  const center = 450;
-  const markerRadius = 252;
+  const markers = [
+    { x: 585.372, y: 168.898, angle: 25.7143 },
+    { x: 754.177, y: 380.573, angle: 77.1429 },
+    { x: 693.932, y: 644.529, angle: 128.5714 },
+    { x: 206.068, y: 644.529, angle: 231.4286 },
+    { x: 145.823, y: 380.573, angle: 282.8571 },
+    { x: 314.628, y: 168.898, angle: 334.2857 }
+  ];
 
-  normalizedFrameworkSteps.forEach((step, index) => {
-    const nextStep = normalizedFrameworkSteps[(index + 1) % normalizedFrameworkSteps.length];
-    const markerAngle = (step.angle + nextStep.angle) / 2;
-    const normalizedAngle = index === frameworkSteps.length - 1 ? ((step.angle + (nextStep.angle + 360)) / 2) % 360 : markerAngle;
-    const radians = (normalizedAngle * Math.PI) / 180;
-    const markerX = center + markerRadius * Math.cos(radians);
-    const markerY = center + markerRadius * Math.sin(radians);
-    const tangentX = Math.cos(radians + Math.PI / 2);
-    const tangentY = Math.sin(radians + Math.PI / 2);
-    const normalX = Math.cos(radians);
-    const normalY = Math.sin(radians);
-
+  markers.forEach(({ x, y, angle }) => {
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    const startX = markerX - tangentX * 18 - normalX * 3.5;
-    const startY = markerY - tangentY * 18 - normalY * 3.5;
-    const midX = markerX + tangentX * 3;
-    const midY = markerY + tangentY * 3;
-    const endX = markerX + tangentX * 18 - normalX * 3.5;
-    const endY = markerY + tangentY * 18 - normalY * 3.5;
 
-    path.setAttribute("d", `M ${startX} ${startY} Q ${midX} ${midY} ${endX} ${endY}`);
+    path.setAttribute("d", "M -8 -4 L 0 0 L -8 4 z");
     path.setAttribute("class", "framework-direction-marker");
-    path.setAttribute("marker-end", "url(#frameworkDirectionArrowhead)");
+    path.setAttribute("transform", `rotate(${angle}) translate(${x} ${y})`);
     frameworkDirectionMarkers.appendChild(path);
   });
 }
@@ -537,72 +519,82 @@ function toggleTheme() {
   localStorage.setItem("darkMode", "true");
 }
 
-function isValidEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+function renderSignupStatus(statusElement, message, tone) {
+  if (!statusElement) return;
+
+  statusElement.classList.remove("success-message", "error-message");
+  statusElement.classList.add("message-box", tone === "success" ? "success-message" : "error-message");
+  statusElement.style.display = "block";
+  statusElement.innerHTML = `<p class="font-body">${message}</p>`;
 }
 
-function showSuccess() {
-  if (successMessage) successMessage.style.display = "block";
-  if (errorMessage) errorMessage.style.display = "none";
-
-  window.setTimeout(() => {
-    if (successMessage) successMessage.style.display = "none";
-  }, 5000);
+function replaceSignupFormWithSuccess(form) {
+  form.innerHTML = `
+    <div class="message-box success-message" data-signup-status aria-live="polite">
+      <p class="font-body">You&rsquo;re in. Thoughtful notes will arrive when they&rsquo;re worth sending.</p>
+    </div>
+  `;
 }
 
-function showError(message) {
-  if (errorText) errorText.textContent = message;
-  if (errorMessage) errorMessage.style.display = "block";
-  if (successMessage) successMessage.style.display = "none";
-}
+async function handleSignupSubmit(form) {
+  if (form.dataset.signupSubmitting === "true") return;
 
-async function submitNewsletter(email) {
-  if (isSubmitting) return;
+  const emailField = form.querySelector('input[name="email"]');
+  const sourceField = form.querySelector('input[name="source"]');
+  const submitButton = form.querySelector('button[type="submit"], input[type="submit"]');
+  const statusElement = form.querySelector("[data-signup-status]");
+  const email = emailField?.value.trim() || "";
+  const source = sourceField?.value.trim() || "unknown";
 
-  if (!newsletterEndpoint) {
-    showError("Newsletter endpoint is not configured yet.");
-    return;
+  form.dataset.signupSubmitting = "true";
+
+  if (submitButton) {
+    submitButton.disabled = true;
   }
 
-  if (!isValidEmail(email)) {
-    showError("Please enter a valid email.");
-    return;
+  if (statusElement) {
+    statusElement.style.display = "none";
+    statusElement.textContent = "";
   }
-
-  isSubmitting = true;
-
-  if (newsletterBtn) {
-    newsletterBtn.disabled = true;
-    newsletterBtn.textContent = "Subscribing...";
-  }
-
-  if (successMessage) successMessage.style.display = "none";
-  if (errorMessage) errorMessage.style.display = "none";
 
   try {
-    const response = await fetch(newsletterEndpoint, {
+    const response = await fetch(SIGNUP_ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email })
+      body: JSON.stringify({ email, source })
     });
 
-    if (response.ok) {
-      showSuccess();
-      if (emailInput) emailInput.value = "";
-    } else {
-      const errorData = await response.json().catch(() => ({}));
-      showError(errorData.message || "Subscription failed. Please try again.");
-    }
-  } catch (error) {
-    showError("Unable to connect. Please check your endpoint and try again.");
-  } finally {
-    if (newsletterBtn) {
-      newsletterBtn.disabled = false;
-      newsletterBtn.textContent = "Subscribe";
+    if (response.status === 200) {
+      replaceSignupFormWithSuccess(form);
+      delete form.dataset.signupSubmitting;
+      return;
     }
 
-    isSubmitting = false;
+    renderSignupStatus(statusElement, "Please try again.", "error");
+  } catch (error) {
+    renderSignupStatus(statusElement, "Please try again.", "error");
+  } finally {
+    if (form.querySelector("[data-signup-status]") === statusElement) {
+      if (submitButton) {
+        submitButton.disabled = false;
+      }
+
+      delete form.dataset.signupSubmitting;
+    }
   }
+}
+
+function initSignupForms() {
+  const signupForms = document.querySelectorAll("[data-signup-form]");
+
+  if (signupForms.length === 0) return;
+
+  signupForms.forEach((form) => {
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      handleSignupSubmit(form);
+    });
+  });
 }
 
 function initScrollEffects() {
@@ -628,11 +620,7 @@ function initEventListeners() {
 
   themeToggle?.addEventListener("click", toggleTheme);
   mobileThemeToggle?.addEventListener("click", toggleTheme);
-
-  newsletterForm?.addEventListener("submit", (event) => {
-    event.preventDefault();
-    if (emailInput) submitNewsletter(emailInput.value.trim());
-  });
+  initSignupForms();
 
   primaryCtaBtn?.addEventListener("click", () => {
     document.getElementById("framework")?.scrollIntoView({ behavior: "smooth" });
@@ -660,6 +648,38 @@ function loadThemePreference() {
   mobileThemeToggle?.classList.add("dark");
 }
 
+function renderLatestIdeas(posts) {
+  if (!latestIdeasGrid) return;
+
+  latestIdeasGrid.innerHTML = posts
+    .map((post, index) => `
+      <article class="article-card ideas-rise flex flex-col" style="animation-delay: ${0.08 + index * 0.1}s;">
+        <p class="ideas-card-category">${post.category}</p>
+        <h3 class="font-heading article-title">${post.title}</h3>
+        <p class="font-body body-copy article-excerpt">${post.excerpt}</p>
+        <div class="ideas-card-footer">
+          <a href="${post.url}" class="read-more-link cta-link">Read More</a>
+        </div>
+      </article>
+    `)
+    .join("");
+}
+
+async function initLatestIdeas() {
+  if (!latestIdeasGrid) return;
+
+  try {
+    const response = await fetch("data/latest-posts.json", { headers: { Accept: "application/json" } });
+    if (!response.ok) return;
+    const data = await response.json();
+    const posts = Array.isArray(data.posts) ? data.posts.slice(0, 3) : [];
+    if (posts.length === 0) return;
+    renderLatestIdeas(posts);
+  } catch (_error) {
+    // Keep the loading card if the data file is unavailable.
+  }
+}
+
 function init() {
   loadThemePreference();
   initHeroRotator();
@@ -668,6 +688,7 @@ function init() {
   initTimelineReveal();
   initScrollEffects();
   initEventListeners();
+  void initLatestIdeas();
 }
 
 if (document.readyState === "loading") {
