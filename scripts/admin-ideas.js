@@ -771,9 +771,9 @@
       if (!originalSlugInput.value && data.slug) {
         originalSlugInput.value = data.slug;
       }
-    } catch (_error) {
+    } catch (error) {
       if (latestPreviewRequest !== requestId) return;
-      setPreviewErrorState("Preview could not be generated.");
+      setPreviewErrorState(error.message || "Preview could not be generated.");
     }
   }
 
@@ -785,8 +785,8 @@
     previewDebounceTimer = window.setTimeout(async () => {
       try {
         await runPreview();
-      } catch (_error) {
-        setPreviewErrorState("Preview could not be generated.");
+      } catch (error) {
+        setPreviewErrorState(error.message || "Preview could not be generated.");
       }
     }, 450);
   }
