@@ -522,6 +522,18 @@ function getVercelDeployHookUrl() {
   return String(process.env.VERCEL_DEPLOY_HOOK_URL || "").trim();
 }
 
+function getVercelApiConfig() {
+  const token = String(process.env.VERCEL_API_TOKEN || "").trim();
+  const projectId = String(process.env.VERCEL_PROJECT_ID || "").trim();
+  const teamId = String(process.env.VERCEL_ORG_ID || "").trim();
+
+  if (!token || !projectId) {
+    return null;
+  }
+
+  return { token, projectId, teamId };
+}
+
 async function triggerVercelDeployHook() {
   const hookUrl = getVercelDeployHookUrl();
   if (!hookUrl) {
@@ -545,6 +557,78 @@ async function triggerVercelDeployHook() {
     deploy_hook_triggered: true,
     deploy_hook_configured: true,
     deploy_hook_warning: null
+  };
+}
+
+async function getLatestVercelDeploymentStatus() {
+  const config = getVercelApiConfig();
+  if (!config) {
+    return {
+      deployment_status_available: false,
+      deployment_status_message: "VERCEL_API_TOKEN or VERCEL_PROJECT_ID is not configured."
+    };
+  }
+
+  const branch = String(process.env.VERCEL_PRODUCTION_GIT_BRANCH || "").trim();
+  const searchParams = new URLSearchParams({
+    projectId: config.projectId,
+    target: "production",
+    limit: "1"
+  });
+
+  if (branch) {
+    searchParams.set("branch", branch);
+  }
+
+  if (config.teamId) {
+    searchParams.set("teamId", config.teamId);
+  }
+
+  const response = await fetch(`https://api.vercel.com/v6/deployments?${searchParams.toString()}`, {
+    headers: {
+      Authorization: `Bearer ${config.token}`,
+      Accept: "application/json"
+    }
+  });
+
+  if (!response.ok) {
+    return {
+      deployment_status_available: false,
+      deployment_status_message: `Unable to load deployment status (${response.status}).`
+    };
+  }
+
+  const payload = await response.json();
+  const deployment = Array.isArray(payload.deployments) ? payload.deployments[0] : null;
+
+  if (!deployment) {
+    return {
+      deployment_status_available: true,
+      deployment_status: "UNKNOWN",
+      deployment_status_label: "No deployment found",
+      deployment_status_message: "No production deployment was found yet."
+    };
+  }
+
+  const readyState = String(deployment.readyState || deployment.status || "UNKNOWN").toUpperCase();
+  const statusMap = {
+    QUEUED: "Deploy triggered",
+    INITIALIZING: "Deploy triggered",
+    BUILDING: "Building",
+    READY: "Live",
+    ERROR: "Deploy failed",
+    CANCELED: "Deploy canceled"
+  };
+
+  return {
+    deployment_status_available: true,
+    deployment_id: deployment.id || null,
+    deployment_status: readyState,
+    deployment_status_label: statusMap[readyState] || readyState,
+    deployment_status_message: statusMap[readyState] || readyState,
+    deployment_url: deployment.url ? `https://${deployment.url}` : null,
+    deployment_created_at: deployment.createdAt || null,
+    deployment_ready_at: deployment.ready || null
   };
 }
 
@@ -707,6 +791,7 @@ module.exports = {
   SESSION_TTL_SECONDS,
   buildDraftPayload,
   createSessionToken,
+  getLatestVercelDeploymentStatus,
   getPostSourceBySlug,
   getRecentPosts,
   publishPostToGitHub,

@@ -9,6 +9,7 @@
   const editorShell = document.getElementById("adminEditorShell");
   const editorForm = document.getElementById("ideasAdminForm");
   const editorMessage = document.getElementById("adminEditorMessage");
+  const deployStatusMessage = document.getElementById("adminDeployStatus");
   const previewButton = document.getElementById("previewPostBtn");
   const logoutButton = document.getElementById("adminLogoutBtn");
   const previewFrame = document.getElementById("previewFrame");
@@ -49,6 +50,8 @@
   let lastSavedAt = null;
   let lastSaveLabel = "Saved";
   let saveStatusTimer = null;
+  let deploymentPollTimer = null;
+  let deploymentPollAttempts = 0;
   let latestPreviewRequest = 0;
   let cleanSnapshot = null;
   let editingExisting = false;
@@ -87,6 +90,62 @@
     if (!target) return;
     target.innerHTML = buildMessageHtml(message || "", links);
     target.classList.toggle("is-error", Boolean(isError));
+  }
+
+  function stopDeploymentPolling() {
+    if (deploymentPollTimer) {
+      window.clearTimeout(deploymentPollTimer);
+      deploymentPollTimer = null;
+    }
+    deploymentPollAttempts = 0;
+  }
+
+  function setDeploymentStatus(message, isError, links = []) {
+    setMessage(deployStatusMessage, message, isError, links);
+  }
+
+  async function fetchDeploymentStatus() {
+    return requestApi("/api/admin/deploy-status", { method: "GET" });
+  }
+
+  function shouldContinueDeploymentPolling(status) {
+    return ["QUEUED", "INITIALIZING", "BUILDING", "UNKNOWN"].includes(String(status || "").toUpperCase());
+  }
+
+  async function pollDeploymentStatus() {
+    try {
+      const data = await fetchDeploymentStatus();
+      if (!data.deployment_status_available) {
+        setDeploymentStatus(data.deployment_status_message || "Deployment status is unavailable.", true);
+        stopDeploymentPolling();
+        return;
+      }
+
+      setDeploymentStatus(
+        data.deployment_status_message || data.deployment_status_label || "Deployment status updated.",
+        ["ERROR", "CANCELED"].includes(String(data.deployment_status || "").toUpperCase()),
+        [data.deployment_url ? { href: data.deployment_url, label: "Open Deployment" } : null]
+      );
+
+      if (!shouldContinueDeploymentPolling(data.deployment_status) || deploymentPollAttempts >= 30) {
+        stopDeploymentPolling();
+        return;
+      }
+    } catch (error) {
+      setDeploymentStatus(error.message || "Unable to load deployment status.", true);
+      stopDeploymentPolling();
+      return;
+    }
+
+    deploymentPollAttempts += 1;
+    deploymentPollTimer = window.setTimeout(pollDeploymentStatus, 4000);
+  }
+
+  function startDeploymentPolling(initialMessage, links = []) {
+    stopDeploymentPolling();
+    setDeploymentStatus(initialMessage || "Deploy triggered", false, links);
+    deploymentPollAttempts = 0;
+    deploymentPollTimer = window.setTimeout(pollDeploymentStatus, 2500);
   }
 
   function syncThemeToggle() {
@@ -830,6 +889,8 @@
 
   async function saveDraft() {
     setMessage(editorMessage, "");
+    stopDeploymentPolling();
+    setDeploymentStatus("");
     const payload = await getFormPayload();
     const data = await requestApi("/api/admin/draft", {
       method: "POST",
@@ -844,6 +905,7 @@
 
   async function publishPost() {
     setMessage(editorMessage, "");
+    setDeploymentStatus("");
     const payload = await getFormPayload();
     const liveSlug = payload.published_slug;
 
@@ -874,6 +936,12 @@
         data.live_url ? { href: data.live_url, label: "View Live" } : null
       ]
     );
+
+    if (data.deploy_hook_triggered) {
+      startDeploymentPolling("Deploy triggered", [data.live_url ? { href: data.live_url, label: "View Live" } : null]);
+    } else if (data.deploy_hook_warning || data.deploy_hook_configured === false) {
+      setDeploymentStatus(data.deploy_hook_warning || "Deployment was not triggered explicitly.", true);
+    }
   }
 
   loginForm?.addEventListener("submit", async (event) => {
