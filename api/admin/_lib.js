@@ -7,6 +7,7 @@ const { computePost, renderPostPage, serializeFrontMatter } = require("../../lib
 
 const COOKIE_NAME = "ideas_admin_session";
 const SESSION_TTL_SECONDS = 60 * 60 * 4;
+const DRAFT_SCHEMA_VERSION = 1;
 
 function sendJson(res, statusCode, payload, headers = {}) {
   Object.entries({
@@ -133,71 +134,102 @@ function renderPreviewHtml(body) {
   };
 }
 
+function getBlobClient() {
+  try {
+    return require("@vercel/blob");
+  } catch (_error) {
+    throw new Error("Draft storage requires the @vercel/blob package to be installed.");
+  }
+}
+
 function getGitHubConfig() {
   const token = process.env.GITHUB_TOKEN;
   const owner = process.env.GITHUB_REPO_OWNER;
   const repo = process.env.GITHUB_REPO_NAME;
-  const branch = process.env.GITHUB_REPO_BRANCH || "staging";
+  const branch = process.env.VERCEL_PRODUCTION_GIT_BRANCH;
 
-  if (!token || !owner || !repo) {
-    throw new Error("Missing GitHub repository environment variables.");
+  if (!token || !owner || !repo || !branch) {
+    throw new Error("Missing GitHub publishing environment variables.");
   }
 
   return { token, owner, repo, branch };
 }
 
-function createGitHubUrl(filePath) {
+function createGitHubApiUrl(resourcePath) {
   const { owner, repo } = getGitHubConfig();
-  return `https://api.github.com/repos/${owner}/${repo}/contents/${filePath.replace(/\\/g, "/")}`;
+  return `https://api.github.com/repos/${owner}/${repo}/${resourcePath.replace(/^\/+/, "")}`;
 }
 
-async function githubRequest(filePath, method = "GET", body) {
-  const { token, branch } = getGitHubConfig();
-  const response = await fetch(createGitHubUrl(filePath), {
-    method,
+async function githubApiRequest(resourcePath, options = {}) {
+  const { token } = getGitHubConfig();
+  const response = await fetch(createGitHubApiUrl(resourcePath), {
+    method: options.method || "GET",
     headers: {
       Authorization: `Bearer ${token}`,
       Accept: "application/vnd.github+json",
       "Content-Type": "application/json",
-      "User-Agent": "olakelly-ideas-admin"
+      "User-Agent": "olakelly-ideas-admin",
+      ...(options.headers || {})
     },
-    body: body ? JSON.stringify({ branch, ...body }) : undefined
+    body: options.body ? JSON.stringify(options.body) : undefined
   });
 
-  if (response.status === 404) return null;
+  if (response.status === 404 && options.allowNotFound) return null;
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`GitHub request failed: ${response.status} ${errorText}`);
+    const error = new Error(`GitHub request failed: ${response.status} ${await response.text()}`);
+    error.statusCode = response.status;
+    throw error;
   }
+
+  if (response.status === 204) return null;
   return response.json();
 }
 
+async function assertGitHubBranchExists() {
+  const { branch } = getGitHubConfig();
+  await githubApiRequest(`branches/${encodeURIComponent(branch)}`);
+}
+
+async function githubContentsRequest(filePath, method = "GET", body, options = {}) {
+  const { branch } = getGitHubConfig();
+  const normalizedPath = filePath.replace(/\\/g, "/");
+  const resourcePath = method === "GET"
+    ? `contents/${normalizedPath}?ref=${encodeURIComponent(branch)}`
+    : `contents/${normalizedPath}`;
+
+  return githubApiRequest(resourcePath, {
+    method,
+    allowNotFound: options.allowNotFound,
+    body: method === "GET" ? undefined : { branch, ...body }
+  });
+}
+
 async function getGitHubFile(filePath) {
-  const response = await githubRequest(filePath);
+  const response = await githubContentsRequest(filePath, "GET", undefined, { allowNotFound: true });
   if (!response) return null;
-  const content = Buffer.from(response.content, "base64").toString("utf8");
   return {
     sha: response.sha,
-    content
+    content: Buffer.from(response.content || "", "base64").toString("utf8"),
+    html_url: response.html_url || null
   };
 }
 
-async function putGitHubFile(filePath, content, message) {
-  const existing = await getGitHubFile(filePath);
-  return githubRequest(filePath, "PUT", {
+async function putGitHubFile(filePath, content, message, sha) {
+  const payload = {
     message,
-    content: Buffer.from(content).toString("base64"),
-    sha: existing ? existing.sha : undefined
-  });
+    content: Buffer.isBuffer(content) ? content.toString("base64") : Buffer.from(String(content), "utf8").toString("base64")
+  };
+  if (sha) payload.sha = sha;
+  return githubContentsRequest(filePath, "PUT", payload);
 }
 
-async function deleteGitHubFile(filePath, message) {
-  const existing = await getGitHubFile(filePath);
-  if (!existing) return null;
-  return githubRequest(filePath, "DELETE", {
-    message,
-    sha: existing.sha
-  });
+async function deleteGitHubFile(filePath, message, sha) {
+  if (!sha) {
+    const existing = await getGitHubFile(filePath);
+    if (!existing) return null;
+    sha = existing.sha;
+  }
+  return githubContentsRequest(filePath, "DELETE", { message, sha });
 }
 
 function parseExistingSource(source) {
@@ -240,7 +272,7 @@ function parsePostSource(source) {
 }
 
 async function listGitHubPostFiles() {
-  const response = await githubRequest("content/posts");
+  const response = await githubContentsRequest("content/posts", "GET", undefined, { allowNotFound: true });
   if (!Array.isArray(response)) return [];
   return response
     .filter((entry) => entry && entry.type === "file" && /\.md$/i.test(entry.name))
@@ -349,14 +381,19 @@ async function normalizeHomepageOrdering(nextPost, originalSlug) {
   return updates;
 }
 
-async function updateRedirectsIfNeeded(originalSlug, nextSlug) {
-  if (!originalSlug || !nextSlug || originalSlug === nextSlug) return;
+async function updateRedirectsIfNeeded(originalSlug, nextSlug, commitMessage) {
+  if (!originalSlug || !nextSlug || originalSlug === nextSlug) return null;
   const redirectsPath = "content/redirects.json";
   const existingRedirects = await getGitHubFile(redirectsPath);
   const payload = existingRedirects ? JSON.parse(existingRedirects.content) : { redirects: [] };
-  const filtered = Array.isArray(payload.redirects) ? payload.redirects.filter((entry) => entry.from !== originalSlug) : [];
+  const filtered = Array.isArray(payload.redirects) ? payload.redirects.filter((entry) => entry && entry.from !== originalSlug) : [];
   filtered.push({ from: originalSlug, to: nextSlug });
-  await putGitHubFile(redirectsPath, JSON.stringify({ redirects: filtered }, null, 2), `Add redirect from ${originalSlug} to ${nextSlug}`);
+  return putGitHubFile(
+    redirectsPath,
+    JSON.stringify({ redirects: filtered }, null, 2),
+    commitMessage,
+    existingRedirects ? existingRedirects.sha : undefined
+  );
 }
 
 function decodeDataUrl(dataUrl) {
@@ -376,22 +413,57 @@ function extensionFromMimeType(mimeType) {
   return "bin";
 }
 
-async function savePostToGitHub(body) {
-  const now = new Date().toISOString();
-  const requestedSlug = body.slug || body.title;
-  const originalSlug = body.original_slug || requestedSlug;
-  const nextPost = computePost(
+function getDraftId(body) {
+  return String(body.draft_id || crypto.randomUUID()).trim();
+}
+
+function buildDraftPayload(body, draftId, overrides = {}) {
+  const updatedAt = overrides.updated_at || new Date().toISOString();
+  return {
+    version: DRAFT_SCHEMA_VERSION,
+    id: String(overrides.id ?? body.id ?? "").trim(),
+    draft_id: draftId,
+    title: String(overrides.title ?? body.title ?? "").trim(),
+    slug: String(overrides.slug ?? body.slug ?? body.title ?? "").trim(),
+    published_slug: String(overrides.published_slug ?? body.published_slug ?? "").trim() || null,
+    status: String(overrides.status ?? body.status ?? "draft").trim(),
+    updated_at: updatedAt,
+    payload: {
+      ...body,
+      draft_id: draftId,
+      published_slug: String(overrides.published_slug ?? body.published_slug ?? "").trim() || null
+    }
+  };
+}
+
+async function saveDraftToBlob(body, overrides = {}) {
+  const { put } = getBlobClient();
+  const draftId = getDraftId({ ...body, draft_id: overrides.draft_id || body.draft_id });
+  const draft = buildDraftPayload(body, draftId, overrides);
+  const pathname = `drafts/posts/${draftId}.json`;
+
+  await put(pathname, JSON.stringify(draft, null, 2), {
+    access: "private",
+    contentType: "application/json",
+    addRandomSuffix: false
+  });
+
+  return draft;
+}
+
+function buildPublishPost(body, publishedAt) {
+  return computePost(
     {
-      id: body.id,
+      id: String(body.id || body.draft_id || `ideas-${Date.now()}`).trim(),
       title: body.title,
       subtitle: body.subtitle,
-      slug: requestedSlug,
+      slug: body.slug || body.title,
       status: body.status,
       featured: Boolean(body.featured),
       homepage_featured: Boolean(body.homepage_featured),
       homepage_order: body.homepage_order,
-      date: body.date || now,
-      updated: now,
+      date: body.date || publishedAt,
+      updated: publishedAt,
       category: body.category || "STEWARD Framework",
       category_slug: body.category_slug || "steward-framework",
       tags: body.tags || [],
@@ -408,60 +480,172 @@ async function savePostToGitHub(body) {
     },
     body.content || ""
   );
+}
 
-  const originalPath = `content/posts/${originalSlug}.md`;
-  const existingSource = await getGitHubFile(originalPath);
-  const existingData = existingSource ? parseExistingSource(existingSource.content) : null;
-  const existingWasPublished = existingData && existingData.status === "published";
+function buildPublishCommitMessage(post) {
+  return `Publish: ${post.title} (${post.slug})`;
+}
 
-  if (existingWasPublished && originalSlug !== nextPost.slug && !body.confirm_slug_change) {
-    const error = new Error("Published slug changes require explicit confirmation.");
-    error.statusCode = 409;
-    throw error;
+function createConflictError(message) {
+  const error = new Error(message);
+  error.statusCode = 409;
+  return error;
+}
+
+function isSameLineage(existingPost, nextPost, publishedSlug) {
+  if (!existingPost) return false;
+  if (existingPost.id && nextPost.id && existingPost.id === nextPost.id) return true;
+  if (publishedSlug && existingPost.slug === publishedSlug) return true;
+  return false;
+}
+
+function extractCommitInfo(result) {
+  if (!result || !result.commit) return { commit_sha: null, commit_url: null };
+  return {
+    commit_sha: result.commit.sha || null,
+    commit_url: result.commit.html_url || null
+  };
+}
+
+async function publishPostToGitHub(body) {
+  await assertGitHubBranchExists();
+
+  const publishedAt = new Date().toISOString();
+  const requestedPublishedSlug = String(body.published_slug || "").trim() || null;
+  const nextBasePost = buildPublishPost(body, publishedAt);
+  const commitMessage = buildPublishCommitMessage(nextBasePost);
+
+  const livePath = requestedPublishedSlug ? `content/posts/${requestedPublishedSlug}.md` : null;
+  const targetPath = `content/posts/${nextBasePost.slug}.md`;
+  const isSlugChange = Boolean(requestedPublishedSlug && requestedPublishedSlug !== nextBasePost.slug);
+
+  if (isSlugChange && !body.confirm_slug_change) {
+    throw createConflictError("Published slug changes require explicit confirmation.");
   }
 
-  let coverImagePath = nextPost.cover_image;
+  const [liveSource, targetSource] = await Promise.all([
+    livePath ? getGitHubFile(livePath) : Promise.resolve(null),
+    getGitHubFile(targetPath)
+  ]);
+
+  const livePost = liveSource ? parsePostSource(liveSource.content) : null;
+  const targetPost = targetSource ? parsePostSource(targetSource.content) : null;
+  const targetBelongsToSameLineage = isSameLineage(targetPost, nextBasePost, requestedPublishedSlug);
+
+  if (targetSource && !targetBelongsToSameLineage && (!requestedPublishedSlug || requestedPublishedSlug !== nextBasePost.slug)) {
+    throw createConflictError(`A different post already uses the slug "${nextBasePost.slug}".`);
+  }
+
+  let coverImagePath = nextBasePost.cover_image;
+  let lastCommitInfo = { commit_sha: null, commit_url: null };
+  let hasBinaryChanges = false;
+
   if (body.cover_image_data) {
     const decoded = decodeDataUrl(body.cover_image_data);
     if (!decoded) {
       throw new Error("Invalid cover image format.");
     }
     const extension = extensionFromMimeType(decoded.mimeType);
-    coverImagePath = `/assets/posts/${nextPost.slug}/cover.${extension}`;
-    await putGitHubFile(
-      path.posix.join("assets", "posts", nextPost.slug, `cover.${extension}`),
-      decoded.buffer,
-      `Upload cover image for ${nextPost.slug}`
-    );
+    coverImagePath = `/assets/posts/${nextBasePost.slug}/cover.${extension}`;
+    const assetPath = path.posix.join("assets", "posts", nextBasePost.slug, `cover.${extension}`);
+    const existingAsset = await getGitHubFile(assetPath);
+    const uploadResult = await putGitHubFile(assetPath, decoded.buffer, commitMessage, existingAsset ? existingAsset.sha : undefined);
+    lastCommitInfo = extractCommitInfo(uploadResult);
+    hasBinaryChanges = true;
   }
 
-  const source = serializeFrontMatter({
-    ...nextPost,
+  const nextPost = {
+    ...nextBasePost,
     cover_image: coverImagePath
-  });
+  };
+  const source = serializeFrontMatter(nextPost);
 
-  const homepageUpdates = await normalizeHomepageOrdering(
-    {
-      ...nextPost,
-      cover_image: coverImagePath
-    },
-    originalSlug
-  );
+  const homepageUpdates = await normalizeHomepageOrdering(nextPost, requestedPublishedSlug || nextPost.slug);
+  const canUseTargetPathForIdempotency = !isSlugChange;
+  const targetSourceMatches = Boolean(targetSource && targetSource.content === source);
+  const noChanges = canUseTargetPathForIdempotency
+    && targetSourceMatches
+    && (targetBelongsToSameLineage || !requestedPublishedSlug)
+    && homepageUpdates.length === 0
+    && !hasBinaryChanges;
+
+  if (!requestedPublishedSlug && targetSource && !targetBelongsToSameLineage) {
+    throw createConflictError(`A different post already uses the slug "${nextPost.slug}".`);
+  }
+
+  if (noChanges) {
+    if (body.draft_id) {
+      await saveDraftToBlob(body, {
+        draft_id: body.draft_id,
+        id: nextPost.id,
+        slug: nextPost.slug,
+        published_slug: nextPost.slug,
+        status: nextPost.status,
+        updated_at: publishedAt
+      });
+    }
+
+    const { branch } = getGitHubConfig();
+    return {
+      id: nextPost.id,
+      slug: nextPost.slug,
+      published_slug: nextPost.slug,
+      branch,
+      commit_sha: null,
+      commit_url: null,
+      cover_image: nextPost.cover_image,
+      live_url: nextPost.url,
+      published_at: publishedAt,
+      no_changes: true,
+      message: "No changes to publish. Production already matches this content.",
+      reading_time: nextPost.reading_time,
+      word_count: nextPost.word_count
+    };
+  }
 
   for (const post of homepageUpdates) {
     const updateSource = serializeFrontMatter(post);
-    await putGitHubFile(`content/posts/${post.slug}.md`, updateSource, `Reorder homepage idea: ${post.title}`);
+    const existing = await getGitHubFile(`content/posts/${post.slug}.md`);
+    const updateResult = await putGitHubFile(`content/posts/${post.slug}.md`, updateSource, commitMessage, existing ? existing.sha : undefined);
+    lastCommitInfo = extractCommitInfo(updateResult);
   }
 
-  await putGitHubFile(`content/posts/${nextPost.slug}.md`, source, `Save idea: ${nextPost.title}`);
-  if (existingSource && originalSlug !== nextPost.slug) {
-    await deleteGitHubFile(`content/posts/${originalSlug}.md`, `Remove old slug source for ${originalSlug}`);
-    await updateRedirectsIfNeeded(originalSlug, nextPost.slug);
+  const targetWriteResult = await putGitHubFile(targetPath, source, commitMessage, targetSource ? targetSource.sha : undefined);
+  lastCommitInfo = extractCommitInfo(targetWriteResult);
+
+  if (isSlugChange && requestedPublishedSlug) {
+    const redirectResult = await updateRedirectsIfNeeded(requestedPublishedSlug, nextPost.slug, commitMessage);
+    if (redirectResult) lastCommitInfo = extractCommitInfo(redirectResult);
+
+    if (liveSource) {
+      const deleteResult = await deleteGitHubFile(livePath, commitMessage, liveSource.sha);
+      if (deleteResult) lastCommitInfo = extractCommitInfo(deleteResult);
+    }
   }
 
+  if (body.draft_id) {
+    await saveDraftToBlob(body, {
+      draft_id: body.draft_id,
+      id: nextPost.id,
+      slug: nextPost.slug,
+      published_slug: nextPost.slug,
+      status: nextPost.status,
+      updated_at: publishedAt
+    });
+  }
+
+  const { branch } = getGitHubConfig();
   return {
+    id: nextPost.id,
     slug: nextPost.slug,
-    url: nextPost.url,
+    published_slug: nextPost.slug,
+    branch,
+    ...lastCommitInfo,
+    cover_image: nextPost.cover_image,
+    live_url: nextPost.url,
+    published_at: publishedAt,
+    no_changes: false,
+    message: "Published successfully. Vercel will deploy automatically.",
     reading_time: nextPost.reading_time,
     word_count: nextPost.word_count
   };
@@ -469,13 +653,16 @@ async function savePostToGitHub(body) {
 
 module.exports = {
   COOKIE_NAME,
+  DRAFT_SCHEMA_VERSION,
   SESSION_TTL_SECONDS,
+  buildDraftPayload,
   createSessionToken,
   getPostSourceBySlug,
   getRecentPosts,
+  publishPostToGitHub,
   readJsonBody,
   renderPreviewHtml,
   requireSession,
-  savePostToGitHub,
+  saveDraftToBlob,
   sendJson
 };

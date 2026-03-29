@@ -25,11 +25,13 @@
   const formatButtons = Array.from(document.querySelectorAll("[data-format-action]"));
   const editSlugBtn = document.getElementById("editSlugBtn");
   const originalSlugInput = document.getElementById("originalSlug");
+  const publishedSlugInput = document.getElementById("publishedSlug");
   const postIdInput = document.getElementById("postId");
+  const draftIdInput = document.getElementById("draftId");
   const coverImagePathInput = document.getElementById("coverImagePath");
   const relatedPostsInput = document.getElementById("relatedPostsInput");
   const statusInput = document.getElementById("postStatus");
-  const savePostBtn = document.getElementById("savePostBtn");
+  const publishPostBtn = document.getElementById("publishPostBtn");
   const homepageFeaturedInput = document.querySelector('input[name="homepage_featured"]');
   const homepageOrderInput = document.getElementById("homepageOrderInput");
   const saveStatus = document.getElementById("saveStatus");
@@ -45,6 +47,7 @@
   let slugManuallyEdited = false;
   let previewDebounceTimer = null;
   let lastSavedAt = null;
+  let lastSaveLabel = "Saved";
   let saveStatusTimer = null;
   let latestPreviewRequest = 0;
   let cleanSnapshot = null;
@@ -62,9 +65,27 @@
       .replace(/^-+|-+$/g, "");
   }
 
-  function setMessage(target, message, isError) {
+  function escapeHtml(value) {
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function buildMessageHtml(message, links = []) {
+    const linkMarkup = links
+      .filter((link) => link && link.href && link.label)
+      .map((link) => `<a href="${escapeHtml(link.href)}" target="_blank" rel="noreferrer">${escapeHtml(link.label)}</a>`)
+      .join(" ");
+
+    return linkMarkup ? `${escapeHtml(message)} ${linkMarkup}` : escapeHtml(message);
+  }
+
+  function setMessage(target, message, isError, links = []) {
     if (!target) return;
-    target.textContent = message || "";
+    target.innerHTML = buildMessageHtml(message || "", links);
     target.classList.toggle("is-error", Boolean(isError));
   }
 
@@ -91,19 +112,9 @@
     setTheme(storedPreference !== "false");
   }
 
-  function syncSaveButtonLabel() {
-    if (!savePostBtn || !statusInput) return;
-    savePostBtn.textContent = statusInput.value === "published" ? "Publish" : "Save Draft";
-  }
-
   function syncEditorHeading() {
     if (!editorHeading || !titleInput) return;
     editorHeading.textContent = titleInput.value.trim() || "New Idea";
-  }
-
-  function setPreviewVisibility(hasPreview) {
-    previewPlaceholder?.classList.toggle("is-hidden", hasPreview);
-    previewFrame?.classList.toggle("is-hidden", !hasPreview);
   }
 
   function setPreviewPlaceholderState() {
@@ -410,10 +421,11 @@
     }
 
     const elapsedMinutes = Math.floor((Date.now() - lastSavedAt.getTime()) / 60000);
-    saveStatus.textContent = elapsedMinutes <= 0 ? "Saved just now" : `Saved ${elapsedMinutes} min ago`;
+    saveStatus.textContent = elapsedMinutes <= 0 ? `${lastSaveLabel} just now` : `${lastSaveLabel} ${elapsedMinutes} min ago`;
   }
 
-  function markSavedNow() {
+  function markSavedNow(label) {
+    lastSaveLabel = label || "Saved";
     lastSavedAt = new Date();
     updateSaveStatus();
     if (saveStatusTimer) {
@@ -473,10 +485,12 @@
 
     return {
       id: String(formData.get("id") || "").trim(),
+      draft_id: String(formData.get("draft_id") || "").trim(),
       title: String(formData.get("title") || "").trim(),
       subtitle: String(formData.get("subtitle") || "").trim(),
       slug: String(formData.get("slug") || "").trim(),
       original_slug: String(formData.get("original_slug") || "").trim(),
+      published_slug: String(formData.get("published_slug") || "").trim(),
       category: String(formData.get("category") || "").trim(),
       tags: String(formData.get("tags") || "")
         .split(",")
@@ -524,10 +538,12 @@
 
     return {
       id: String(formData.get("id") || "").trim(),
+      draft_id: String(formData.get("draft_id") || "").trim(),
       title: String(formData.get("title") || "").trim(),
       subtitle: String(formData.get("subtitle") || "").trim(),
       slug: String(formData.get("slug") || "").trim(),
       original_slug: String(formData.get("original_slug") || "").trim(),
+      published_slug: String(formData.get("published_slug") || "").trim(),
       category: String(formData.get("category") || "").trim(),
       tags,
       excerpt: String(formData.get("excerpt") || "").trim(),
@@ -574,7 +590,7 @@
     const status = String(post.status || "").trim();
     const readableStatus = status ? `${status.charAt(0).toUpperCase()}${status.slice(1)}` : "";
     const compactTitle = title.length > 52 ? `${title.slice(0, 49)}...` : title;
-    return `${compactTitle} — ${slug}${readableStatus ? ` (${readableStatus})` : ""}`;
+    return `${compactTitle} - ${slug}${readableStatus ? ` (${readableStatus})` : ""}`;
   }
 
   function populateRecentPostsDropdown(recentPosts) {
@@ -596,7 +612,9 @@
 
   function resetLoadedSourceFields() {
     if (postIdInput) postIdInput.value = "";
+    if (draftIdInput) draftIdInput.value = "";
     if (originalSlugInput) originalSlugInput.value = "";
+    if (publishedSlugInput) publishedSlugInput.value = "";
     if (coverImagePathInput) coverImagePathInput.value = "";
     if (relatedPostsInput) relatedPostsInput.value = "[]";
   }
@@ -628,6 +646,7 @@
 
     if (postIdInput) postIdInput.value = post.id || "";
     if (originalSlugInput) originalSlugInput.value = post.slug || "";
+    if (publishedSlugInput) publishedSlugInput.value = post.status === "published" ? (post.slug || "") : "";
     if (coverImagePathInput) coverImagePathInput.value = post.cover_image || "";
     if (relatedPostsInput) relatedPostsInput.value = JSON.stringify(Array.isArray(post.related_posts) ? post.related_posts : []);
     if (titleInput) titleInput.value = post.title || "";
@@ -675,29 +694,53 @@
     }
 
     syncEditorHeading();
-    syncSaveButtonLabel();
     syncHomepageOrderState();
     setLoadedPostMode(post);
   }
 
+  function applyServerState(data, payload, mode) {
+    if (postIdInput && data.id) postIdInput.value = data.id;
+    if (draftIdInput && data.draft_id) draftIdInput.value = data.draft_id;
+    if (coverImagePathInput) {
+      coverImagePathInput.value = data.cover_image || payload.cover_image || "";
+    }
+    previewSlug.textContent = data.slug || payload.slug || "-";
+    previewReadTime.textContent = data.reading_time ? `${data.reading_time} min` : "-";
+    previewWordCount.textContent = data.word_count || "-";
+
+    if (mode === "draft") {
+      if (originalSlugInput && !originalSlugInput.value) {
+        originalSlugInput.value = data.slug || payload.slug || "";
+      }
+      if (publishedSlugInput) {
+        publishedSlugInput.value = data.published_slug || payload.published_slug || "";
+      }
+      if (!editingExisting) {
+        setEditingState(data.slug || payload.slug || "");
+      }
+      return;
+    }
+
+    if (originalSlugInput) originalSlugInput.value = data.slug || payload.slug || "";
+    if (publishedSlugInput) publishedSlugInput.value = data.published_slug || data.slug || payload.slug || "";
+    loadedPostWasPublished = true;
+    slugUnlockedForSession = false;
+    slugManuallyEdited = false;
+    syncSlugLockState();
+    setEditingState(data.slug || payload.slug || "");
+    if (existingPostSlugInput) existingPostSlugInput.value = data.slug || payload.slug || "";
+  }
+
   async function runPreview() {
-    console.debug("[Ideas Preview] runPreview invoked");
     if (!editorShell || editorShell.classList.contains("is-hidden")) {
-      console.debug("[Ideas Preview] skipped because editor is hidden");
       return;
     }
 
     const payload = await getFormPayload();
     const hasMinimumPreviewContent = Boolean(payload.title?.trim() && payload.content?.trim());
-    console.debug("[Ideas Preview] payload readiness", {
-      hasTitle: Boolean(payload.title?.trim()),
-      hasContent: Boolean(payload.content?.trim()),
-      hasExcerpt: Boolean(payload.excerpt?.trim())
-    });
 
     if (!hasMinimumPreviewContent) {
       clearPreview();
-      console.debug("[Ideas Preview] placeholder shown due to missing title or content");
       return;
     }
 
@@ -707,7 +750,6 @@
 
     const requestId = Date.now();
     latestPreviewRequest = requestId;
-    console.debug("[Ideas Preview] request start");
 
     try {
       const data = await requestApi("/api/admin/preview", {
@@ -715,14 +757,8 @@
         body: JSON.stringify(payload)
       });
       if (latestPreviewRequest !== requestId) {
-        console.debug("[Ideas Preview] stale response ignored");
         return;
       }
-
-      console.debug("[Ideas Preview] request success", {
-        hasHtml: Boolean(data.html),
-        slug: data.slug || ""
-      });
 
       if (!data.html) {
         throw new Error("Preview response did not include HTML.");
@@ -735,16 +771,13 @@
       if (!originalSlugInput.value && data.slug) {
         originalSlugInput.value = data.slug;
       }
-      console.debug("[Ideas Preview] render complete");
-    } catch (error) {
+    } catch (_error) {
       if (latestPreviewRequest !== requestId) return;
-      console.error("[Ideas Preview] request failed", error);
       setPreviewErrorState("Preview could not be generated.");
     }
   }
 
   function schedulePreview() {
-    console.debug("[Ideas Preview] schedulePreview invoked");
     if (previewDebounceTimer) {
       window.clearTimeout(previewDebounceTimer);
     }
@@ -752,8 +785,7 @@
     previewDebounceTimer = window.setTimeout(async () => {
       try {
         await runPreview();
-      } catch (error) {
-        console.error("[Ideas Preview] unexpected preview failure", error);
+      } catch (_error) {
         setPreviewErrorState("Preview could not be generated.");
       }
     }, 450);
@@ -796,6 +828,54 @@
     refreshCleanSnapshot();
   }
 
+  async function saveDraft() {
+    setMessage(editorMessage, "");
+    const payload = await getFormPayload();
+    const data = await requestApi("/api/admin/draft", {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+
+    applyServerState(data, payload, "draft");
+    markSavedNow("Draft saved");
+    refreshCleanSnapshot();
+    setMessage(editorMessage, data.message || "Draft saved securely.");
+  }
+
+  async function publishPost() {
+    setMessage(editorMessage, "");
+    const payload = await getFormPayload();
+    const liveSlug = payload.published_slug;
+
+    if (liveSlug && liveSlug !== payload.slug) {
+      payload.confirm_slug_change = window.confirm(
+        "This post looks like a published slug change. Continue and create a redirect from the old slug?"
+      );
+      if (!payload.confirm_slug_change) {
+        return;
+      }
+    }
+
+    const data = await requestApi("/api/admin/publish", {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+
+    applyServerState(data, payload, "publish");
+    markSavedNow(data.no_changes ? "Checked" : "Published");
+    refreshCleanSnapshot();
+    await loadRecentPosts();
+    setMessage(
+      editorMessage,
+      data.message || "Published successfully. Vercel will deploy automatically.",
+      false,
+      [
+        data.commit_url ? { href: data.commit_url, label: "View Commit" } : null,
+        data.live_url ? { href: data.live_url, label: "View Live" } : null
+      ]
+    );
+  }
+
   loginForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
     const password = document.getElementById("adminPassword").value;
@@ -827,7 +907,6 @@
   });
 
   adminThemeToggle?.addEventListener("click", toggleTheme);
-  statusInput?.addEventListener("change", syncSaveButtonLabel);
   statusInput?.addEventListener("change", schedulePreview);
   homepageFeaturedInput?.addEventListener("change", syncHomepageOrderState);
   homepageFeaturedInput?.addEventListener("change", schedulePreview);
@@ -871,33 +950,16 @@
 
   editorForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
-    setMessage(editorMessage, "");
-
     try {
-      const payload = await getFormPayload();
-      if (payload.original_slug && payload.original_slug !== payload.slug && payload.status === "published") {
-        payload.confirm_slug_change = window.confirm(
-          "This post looks like a published slug change. Continue and create a redirect from the old slug?"
-        );
-      }
+      await saveDraft();
+    } catch (error) {
+      setMessage(editorMessage, error.message, true);
+    }
+  });
 
-      const data = await requestApi("/api/admin/save", {
-        method: "POST",
-        body: JSON.stringify(payload)
-      });
-      previewSlug.textContent = data.slug || "-";
-      previewReadTime.textContent = data.reading_time ? `${data.reading_time} min` : "-";
-      previewWordCount.textContent = data.word_count || "-";
-      originalSlugInput.value = data.slug || payload.slug;
-      if (editingExisting) {
-        setEditingState(data.slug || payload.slug);
-        if (existingPostSlugInput) existingPostSlugInput.value = data.slug || payload.slug;
-      }
-      setPreviewRenderedState(data.html || previewFrame?.srcdoc || "");
-      markSavedNow();
-      refreshCleanSnapshot();
-      await loadRecentPosts();
-      setMessage(editorMessage, "Post saved to the Git-backed content system.");
+  publishPostBtn?.addEventListener("click", async () => {
+    try {
+      await publishPost();
     } catch (error) {
       setMessage(editorMessage, error.message, true);
     }
@@ -921,7 +983,6 @@
   });
 
   loadThemePreference();
-  syncSaveButtonLabel();
   syncEditorHeading();
   syncHomepageOrderState();
   setNewPostMode();

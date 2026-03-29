@@ -218,7 +218,9 @@
               </details>
 
               <input type="hidden" name="id" id="postId">
+              <input type="hidden" name="draft_id" id="draftId">
               <input type="hidden" name="original_slug" id="originalSlug">
+              <input type="hidden" name="published_slug" id="publishedSlug">
               <input type="hidden" name="cover_image" id="coverImagePath">
               <input type="hidden" name="related_posts" id="relatedPostsInput">
             </aside>
@@ -234,7 +236,8 @@
 
                   <div class="admin-action-row">
                     <span class="admin-save-status" id="saveStatus" aria-live="polite"></span>
-                    <button type="submit" class="btn-primary" id="savePostBtn">Save Draft</button>
+                    <button type="submit" class="btn-secondary" id="saveDraftBtn">Save Draft</button>
+                    <button type="button" class="btn-primary" id="publishPostBtn">Publish</button>
                   </div>
                 </div>
 
@@ -293,6 +296,6 @@
     </section>
   </main>
 
-  <script src="../../scripts/admin-ideas.js?v=20260325b"></script>
+  <script src="../../scripts/admin-ideas.js?v=20260329a"></script>
 </body>
 </html>
