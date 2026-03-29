@@ -1,14 +1,14 @@
 ---
-id: ""
+id: "ideas-1774795557143"
 title: "Leadership Is Stewardship"
 subtitle: "Rethinking leadership as the disciplined management of responsibility, capacity, and decisions"
 slug: "leadership-is-stewardship"
-status: "draft"
-featured: false
+status: "published"
+featured: true
 homepage_featured: true
 homepage_order: 1
 date: "2026-03-29"
-updated: "2026-03-29T13:16:52.150Z"
+updated: "2026-03-29T14:45:57.143Z"
 category: "STEWARD Framework"
 category_slug: "steward-framework"
 tags:
