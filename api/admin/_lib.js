@@ -518,6 +518,36 @@ function extractCommitInfo(result) {
   };
 }
 
+function getVercelDeployHookUrl() {
+  return String(process.env.VERCEL_DEPLOY_HOOK_URL || "").trim();
+}
+
+async function triggerVercelDeployHook() {
+  const hookUrl = getVercelDeployHookUrl();
+  if (!hookUrl) {
+    return {
+      deploy_hook_triggered: false,
+      deploy_hook_configured: false,
+      deploy_hook_warning: "VERCEL_DEPLOY_HOOK_URL is not configured."
+    };
+  }
+
+  const response = await fetch(hookUrl, { method: "POST" });
+  if (!response.ok) {
+    return {
+      deploy_hook_triggered: false,
+      deploy_hook_configured: true,
+      deploy_hook_warning: `Vercel deploy hook failed: ${response.status}.`
+    };
+  }
+
+  return {
+    deploy_hook_triggered: true,
+    deploy_hook_configured: true,
+    deploy_hook_warning: null
+  };
+}
+
 async function publishPostToGitHub(body) {
   await assertGitHubBranchExists();
 
@@ -586,6 +616,7 @@ async function publishPostToGitHub(body) {
   }
 
   if (noChanges) {
+    const deployHookResult = await triggerVercelDeployHook();
     if (body.draft_id) {
       await saveDraftToBlob(body, {
         draft_id: body.draft_id,
@@ -609,7 +640,10 @@ async function publishPostToGitHub(body) {
       live_url: nextPost.url,
       published_at: publishedAt,
       no_changes: true,
-      message: "No changes to publish. Production already matches this content.",
+      message: deployHookResult.deploy_hook_triggered
+        ? "No content changes were needed. Vercel redeploy was triggered."
+        : (deployHookResult.deploy_hook_warning || "No changes to publish. Production already matches this content."),
+      ...deployHookResult,
       reading_time: nextPost.reading_time,
       word_count: nextPost.word_count
     };
@@ -646,6 +680,7 @@ async function publishPostToGitHub(body) {
     });
   }
 
+  const deployHookResult = await triggerVercelDeployHook();
   const { branch } = getGitHubConfig();
   return {
     id: nextPost.id,
@@ -657,7 +692,10 @@ async function publishPostToGitHub(body) {
     live_url: nextPost.url,
     published_at: publishedAt,
     no_changes: false,
-    message: "Published successfully. Vercel will deploy automatically.",
+    message: deployHookResult.deploy_hook_triggered
+      ? "Published successfully. Vercel deploy was triggered."
+      : `Published successfully, but deployment was not explicitly triggered. ${deployHookResult.deploy_hook_warning || ""}`.trim(),
+    ...deployHookResult,
     reading_time: nextPost.reading_time,
     word_count: nextPost.word_count
   };
