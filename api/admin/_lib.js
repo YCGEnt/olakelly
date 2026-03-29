@@ -499,6 +499,17 @@ function isSameLineage(existingPost, nextPost, publishedSlug) {
   return false;
 }
 
+function isLegacyDraftMatch(existingPost, nextPost, requestedPublishedSlug) {
+  if (!existingPost || requestedPublishedSlug) return false;
+
+  const existingTitle = String(existingPost.title || "").trim().toLowerCase();
+  const nextTitle = String(nextPost.title || "").trim().toLowerCase();
+  const existingSlug = String(existingPost.slug || "").trim();
+  const nextSlug = String(nextPost.slug || "").trim();
+
+  return Boolean(existingSlug && nextSlug && existingSlug === nextSlug && existingTitle && nextTitle && existingTitle === nextTitle);
+}
+
 function extractCommitInfo(result) {
   if (!result || !result.commit) return { commit_sha: null, commit_url: null };
   return {
@@ -530,7 +541,8 @@ async function publishPostToGitHub(body) {
 
   const livePost = liveSource ? parsePostSource(liveSource.content) : null;
   const targetPost = targetSource ? parsePostSource(targetSource.content) : null;
-  const targetBelongsToSameLineage = isSameLineage(targetPost, nextBasePost, requestedPublishedSlug);
+  const targetBelongsToSameLineage = isSameLineage(targetPost, nextBasePost, requestedPublishedSlug)
+    || isLegacyDraftMatch(targetPost, nextBasePost, requestedPublishedSlug);
 
   if (targetSource && !targetBelongsToSameLineage && (!requestedPublishedSlug || requestedPublishedSlug !== nextBasePost.slug)) {
     throw createConflictError(`A different post already uses the slug "${nextBasePost.slug}".`);
