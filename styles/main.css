@@ -2401,6 +2401,14 @@ input:focus-visible,
   flex-wrap: wrap;
   gap: 14px;
   align-items: center;
+  justify-content: space-between;
+}
+
+.admin-action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: flex-end;
 }
 
 .admin-editor-grid {
@@ -3466,10 +3474,18 @@ html.dark-mode .framework-step-button.is-active {
   .admin-action-row {
     width: 100%;
     justify-content: stretch;
+    flex-direction: column;
+    align-items: stretch;
   }
 
-  .admin-action-row .btn-primary,
-  .admin-action-row .btn-secondary {
+  .admin-action-buttons {
+    width: 100%;
+    justify-content: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .admin-action-buttons .btn-primary,
+  .admin-action-buttons .btn-secondary {
     width: 100%;
     justify-content: center;
   }
@@ -3477,6 +3493,7 @@ html.dark-mode .framework-step-button.is-active {
   .admin-save-status {
     min-width: 0;
     text-align: left;
+    width: 100%;
   }
 
   .admin-utility-bar {
@@ -3505,6 +3522,22 @@ html.dark-mode .framework-step-button.is-active {
 }
 
 @media (max-width: 640px) {
+  .admin-writing-panel {
+    gap: 18px;
+  }
+
+  .admin-writing-head {
+    gap: 14px;
+  }
+
+  .admin-action-row {
+    gap: 12px;
+  }
+
+  .admin-action-buttons {
+    gap: 10px;
+  }
+
   .about-page-hero {
     padding-top: 118px;
     padding-bottom: 42px;
