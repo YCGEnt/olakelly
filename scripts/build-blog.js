@@ -2,7 +2,6 @@
 
 const fs = require("fs");
 const path = require("path");
-const { spawnSync } = require("child_process");
 const { SITE_CSS_VERSION, SITE_JS_VERSION } = require("../lib/asset-versions");
 const {
   SITE_URL,
@@ -45,21 +44,6 @@ function writeFile(filePath, contents) {
 
 function getSourceLastModified(filePath) {
   if (!fs.existsSync(filePath)) return null;
-
-  try {
-    const relativePath = path.relative(projectRoot, filePath).replace(/\\/g, "/");
-    const result = spawnSync("git", ["log", "-1", "--format=%cI", "--", relativePath], {
-      cwd: projectRoot,
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "ignore"],
-      shell: false
-    });
-    const output = String(result.stdout || "").trim();
-    if (output) return new Date(output);
-  } catch (_error) {
-    // Fall back to the filesystem timestamp outside Git-aware environments.
-  }
-
   return fs.statSync(filePath).mtime;
 }
 
@@ -98,6 +82,10 @@ function newestDate(dates, fallback = new Date()) {
 
   if (!timestamps.length) return fallback;
   return new Date(Math.max(...timestamps));
+}
+
+function newestSourceDate(dates) {
+  return newestDate(dates, null);
 }
 
 function formatSitemapDate(date) {
@@ -219,7 +207,7 @@ function buildIdeas() {
   const posts = loadPosts(postsDirectory);
   const publishedPosts = filterPublished(posts);
   const publishedPostModifiedDates = publishedPosts.map((post) => postSourceModifiedDates.get(post.slug));
-  const latestPublishedPostModifiedDate = newestDate(publishedPostModifiedDates, buildDate);
+  const latestPublishedPostModifiedDate = newestSourceDate(publishedPostModifiedDates);
   const sitemapEntries = [];
 
   function addSitemapEntry(pathnameOrUrl, lastmod) {
@@ -230,9 +218,9 @@ function buildIdeas() {
   staticPages.forEach((filePath) => {
     if (!fs.existsSync(filePath) || hasNoindex(filePath)) return;
     const route = filePathToCanonicalPath(filePath);
-    const staticModifiedDate = staticPageModifiedDates.get(filePath) || buildDate;
+    const staticModifiedDate = staticPageModifiedDates.get(filePath);
     const lastmod = route === "/"
-      ? newestDate([staticModifiedDate, latestPublishedPostModifiedDate], buildDate)
+      ? newestSourceDate([staticModifiedDate, latestPublishedPostModifiedDate])
       : staticModifiedDate;
     addSitemapEntry(route, lastmod);
   });
@@ -243,7 +231,7 @@ function buildIdeas() {
   publishedPosts.forEach((post) => {
     const relatedPosts = getRelatedPosts(post, publishedPosts);
     writeFile(path.join(projectRoot, "ideas", post.slug, "index.html"), renderPostPage(post, relatedPosts));
-    addSitemapEntry(post.canonical_url || post.url, postSourceModifiedDates.get(post.slug) || buildDate);
+    addSitemapEntry(post.canonical_url || post.url, postSourceModifiedDates.get(post.slug));
   });
 
   const categories = new Map();
@@ -265,7 +253,7 @@ function buildIdeas() {
     );
     addSitemapEntry(
       `/ideas/category/${entry.category_slug}/`,
-      newestDate(entry.posts.map((post) => postSourceModifiedDates.get(post.slug)), buildDate)
+      newestSourceDate(entry.posts.map((post) => postSourceModifiedDates.get(post.slug)))
     );
   });
 
