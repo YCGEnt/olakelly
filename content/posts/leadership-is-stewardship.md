@@ -8,7 +8,7 @@ featured: true
 homepage_featured: true
 homepage_order: 1
 date: "2026-03-29"
-updated: "2026-04-28T20:47:56.015Z"
+updated: "2026-04-28T20:47:58.550Z"
 category: "Sustainable Leadership"
 category_slug: "sustainable-leadership"
 tags:
