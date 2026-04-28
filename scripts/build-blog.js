@@ -2,8 +2,10 @@
 
 const fs = require("fs");
 const path = require("path");
+const { spawnSync } = require("child_process");
 const { SITE_CSS_VERSION, SITE_JS_VERSION } = require("../lib/asset-versions");
 const {
+  SITE_URL,
   createFeedJson,
   createFeedXml,
   createLatestPostsJson,
@@ -20,9 +22,12 @@ const {
 const projectRoot = path.resolve(__dirname, "..");
 const postsDirectory = path.join(projectRoot, "content", "posts");
 const redirectsPath = path.join(projectRoot, "content", "redirects.json");
+const sitemapPath = path.join(projectRoot, "sitemap.xml");
+const robotsPath = path.join(projectRoot, "robots.txt");
 const staticPages = [
   path.join(projectRoot, "index.html"),
   path.join(projectRoot, "about.html"),
+  path.join(projectRoot, "apply", "index.html"),
   path.join(projectRoot, "disclaimer.html"),
   path.join(projectRoot, "privacy-policy.html"),
   path.join(projectRoot, "terms.html"),
@@ -36,6 +41,155 @@ function ensureDirectory(directoryPath) {
 function writeFile(filePath, contents) {
   ensureDirectory(path.dirname(filePath));
   fs.writeFileSync(filePath, contents, "utf8");
+}
+
+function getSourceLastModified(filePath) {
+  if (!fs.existsSync(filePath)) return null;
+
+  try {
+    const relativePath = path.relative(projectRoot, filePath).replace(/\\/g, "/");
+    const result = spawnSync("git", ["log", "-1", "--format=%cI", "--", relativePath], {
+      cwd: projectRoot,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+      shell: false
+    });
+    const output = String(result.stdout || "").trim();
+    if (output) return new Date(output);
+  } catch (_error) {
+    // Fall back to the filesystem timestamp outside Git-aware environments.
+  }
+
+  return fs.statSync(filePath).mtime;
+}
+
+function captureSourceModifiedDates(filePaths) {
+  const modifiedDates = new Map();
+  filePaths.forEach((filePath) => {
+    if (fs.existsSync(filePath)) {
+      modifiedDates.set(filePath, getSourceLastModified(filePath));
+    }
+  });
+  return modifiedDates;
+}
+
+function getPostSourceModifiedDates() {
+  const modifiedDates = new Map();
+  if (!fs.existsSync(postsDirectory)) return modifiedDates;
+
+  fs.readdirSync(postsDirectory)
+    .filter((file) => file.endsWith(".md"))
+    .forEach((file) => {
+      const filePath = path.join(postsDirectory, file);
+      const source = fs.readFileSync(filePath, "utf8");
+      const slugMatch = source.match(/^slug:\s*["']?([^"'\r\n]+)/m);
+      const slug = slugMatch ? slugMatch[1].trim() : path.basename(file, ".md");
+      modifiedDates.set(slug, getSourceLastModified(filePath));
+    });
+
+  return modifiedDates;
+}
+
+function newestDate(dates, fallback = new Date()) {
+  const timestamps = dates
+    .filter(Boolean)
+    .map((date) => new Date(date).getTime())
+    .filter((timestamp) => Number.isFinite(timestamp));
+
+  if (!timestamps.length) return fallback;
+  return new Date(Math.max(...timestamps));
+}
+
+function formatSitemapDate(date) {
+  const parsed = new Date(date);
+  if (Number.isNaN(parsed.getTime())) {
+    return new Date().toISOString().slice(0, 10);
+  }
+  return parsed.toISOString().slice(0, 10);
+}
+
+function escapeXml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+function hasNoindex(filePath) {
+  if (!fs.existsSync(filePath)) return false;
+  return /<meta\s+[^>]*(name=["']robots["'][^>]*content=["'][^"']*noindex|content=["'][^"']*noindex[^>]*name=["']robots["'])/i
+    .test(fs.readFileSync(filePath, "utf8"));
+}
+
+function normalizeCanonicalPath(value) {
+  if (!value) return "/";
+
+  let pathname = String(value).trim();
+  if (/^https?:\/\//i.test(pathname)) {
+    const url = new URL(pathname);
+    const siteOrigin = new URL(SITE_URL).origin;
+    if (url.origin !== siteOrigin) {
+      throw new Error(`Sitemap canonical URL must belong to ${siteOrigin}: ${pathname}`);
+    }
+    pathname = url.pathname;
+  }
+
+  pathname = pathname.replace(/\\/g, "/").replace(/\/+/g, "/");
+  if (!pathname.startsWith("/")) pathname = `/${pathname}`;
+
+  if (pathname.endsWith("/index.html")) {
+    pathname = pathname.slice(0, -"index.html".length);
+  } else if (pathname.endsWith(".html")) {
+    pathname = pathname.slice(0, -".html".length);
+  }
+
+  if (!pathname.endsWith("/")) pathname = `${pathname}/`;
+  return pathname.replace(/\/+/g, "/");
+}
+
+function filePathToCanonicalPath(filePath) {
+  const relativePath = path.relative(projectRoot, filePath).replace(/\\/g, "/");
+  return normalizeCanonicalPath(relativePath);
+}
+
+function buildAbsoluteSitemapUrl(pathname) {
+  return new URL(normalizeCanonicalPath(pathname), `${SITE_URL}/`).toString();
+}
+
+function createSitemapXml(entries) {
+  const uniqueEntries = Array.from(
+    entries.reduce((map, entry) => {
+      if (!entry || !entry.url) return map;
+      if (!map.has(entry.url)) {
+        map.set(entry.url, {
+          url: entry.url,
+          lastmod: formatSitemapDate(entry.lastmod)
+        });
+      }
+      return map;
+    }, new Map()).values()
+  ).sort((left, right) => left.url.localeCompare(right.url));
+
+  const urls = uniqueEntries.map((entry) => `  <url>
+    <loc>${escapeXml(entry.url)}</loc>
+    <lastmod>${escapeXml(entry.lastmod)}</lastmod>
+  </url>`).join("\n");
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls}
+</urlset>
+`;
+}
+
+function writeRobotsTxt() {
+  writeFile(robotsPath, `User-agent: *
+Allow: /
+
+Sitemap: ${SITE_URL}/sitemap.xml
+`);
 }
 
 function syncStaticPageAssetVersions() {
@@ -58,15 +212,38 @@ function loadRedirects() {
 }
 
 function buildIdeas() {
+  const buildDate = new Date();
+  const staticPageModifiedDates = captureSourceModifiedDates(staticPages);
+  const postSourceModifiedDates = getPostSourceModifiedDates();
   syncStaticPageAssetVersions();
   const posts = loadPosts(postsDirectory);
   const publishedPosts = filterPublished(posts);
+  const publishedPostModifiedDates = publishedPosts.map((post) => postSourceModifiedDates.get(post.slug));
+  const latestPublishedPostModifiedDate = newestDate(publishedPostModifiedDates, buildDate);
+  const sitemapEntries = [];
+
+  function addSitemapEntry(pathnameOrUrl, lastmod) {
+    const url = buildAbsoluteSitemapUrl(pathnameOrUrl);
+    sitemapEntries.push({ url, lastmod: lastmod || buildDate });
+  }
+
+  staticPages.forEach((filePath) => {
+    if (!fs.existsSync(filePath) || hasNoindex(filePath)) return;
+    const route = filePathToCanonicalPath(filePath);
+    const staticModifiedDate = staticPageModifiedDates.get(filePath) || buildDate;
+    const lastmod = route === "/"
+      ? newestDate([staticModifiedDate, latestPublishedPostModifiedDate], buildDate)
+      : staticModifiedDate;
+    addSitemapEntry(route, lastmod);
+  });
 
   writeFile(path.join(projectRoot, "ideas", "index.html"), renderIdeasIndexPage(publishedPosts));
+  addSitemapEntry("/ideas/", latestPublishedPostModifiedDate);
 
   publishedPosts.forEach((post) => {
     const relatedPosts = getRelatedPosts(post, publishedPosts);
     writeFile(path.join(projectRoot, "ideas", post.slug, "index.html"), renderPostPage(post, relatedPosts));
+    addSitemapEntry(post.canonical_url || post.url, postSourceModifiedDates.get(post.slug) || buildDate);
   });
 
   const categories = new Map();
@@ -86,6 +263,10 @@ function buildIdeas() {
       path.join(projectRoot, "ideas", "category", entry.category_slug, "index.html"),
       renderCategoryPage(entry, entry.posts)
     );
+    addSitemapEntry(
+      `/ideas/category/${entry.category_slug}/`,
+      newestDate(entry.posts.map((post) => postSourceModifiedDates.get(post.slug)), buildDate)
+    );
   });
 
   loadRedirects().forEach((redirect) => {
@@ -100,6 +281,8 @@ function buildIdeas() {
   writeFile(path.join(projectRoot, "data", "latest-posts.json"), JSON.stringify(createLatestPostsJson(publishedPosts), null, 2));
   writeFile(path.join(projectRoot, "feed.json"), JSON.stringify(createFeedJson(publishedPosts), null, 2));
   writeFile(path.join(projectRoot, "feed.xml"), createFeedXml(publishedPosts));
+  writeFile(sitemapPath, createSitemapXml(sitemapEntries));
+  writeRobotsTxt();
 
   console.log(`Built ${publishedPosts.length} published posts.`);
 }
