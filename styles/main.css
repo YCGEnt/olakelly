@@ -2462,6 +2462,56 @@ input:focus-visible,
   gap: 18px;
 }
 
+.admin-taxonomy-field {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.admin-taxonomy-group {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-taxonomy-group + .admin-taxonomy-group {
+  margin-top: 16px;
+}
+
+.admin-taxonomy-group-title {
+  margin: 0;
+  color: rgba(5, 10, 48, 0.56);
+  font-family: "Raleway", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.admin-tag-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-tag-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 11px;
+  border: 1px solid rgba(5, 10, 48, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.46);
+  color: var(--color-cosmic-void);
+  font-size: 12px;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.admin-tag-option input {
+  margin: 0;
+  accent-color: var(--color-gold);
+}
+
 .admin-editor-main {
   display: grid;
   gap: 18px;
@@ -2848,6 +2898,16 @@ html.dark-mode .admin-toolbar-button:focus-visible {
 
 html.dark-mode .admin-disclosure-summary::after {
   color: rgba(251, 246, 242, 0.54);
+}
+
+html.dark-mode .admin-taxonomy-group-title {
+  color: rgba(251, 246, 242, 0.56);
+}
+
+html.dark-mode .admin-tag-option {
+  color: var(--color-silver-bird);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(251, 246, 242, 0.12);
 }
 
 html.dark-mode .admin-preview-placeholder {

@@ -538,6 +538,19 @@
     }
   }
 
+  function getSelectedTags() {
+    return Array.from(editorForm?.querySelectorAll('input[name="tags"]:checked') || [])
+      .map((input) => String(input.value || "").trim())
+      .filter(Boolean);
+  }
+
+  function setSelectedTags(tags) {
+    const selectedTags = new Set(Array.isArray(tags) ? tags : []);
+    Array.from(editorForm?.querySelectorAll('input[name="tags"]') || []).forEach((input) => {
+      input.checked = selectedTags.has(input.value);
+    });
+  }
+
   function getNormalizedEditorState() {
     const formData = new FormData(editorForm);
     const file = formData.get("cover_image_file");
@@ -551,10 +564,7 @@
       original_slug: String(formData.get("original_slug") || "").trim(),
       published_slug: String(formData.get("published_slug") || "").trim(),
       category: String(formData.get("category") || "").trim(),
-      tags: String(formData.get("tags") || "")
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter(Boolean),
+      tags: getSelectedTags(),
       excerpt: String(formData.get("excerpt") || "").trim(),
       intent: String(formData.get("intent") || "").trim(),
       featured: formData.get("featured") === "on",
@@ -589,10 +599,6 @@
 
   async function getFormPayload() {
     const formData = new FormData(editorForm);
-    const tags = String(formData.get("tags") || "")
-      .split(",")
-      .map((tag) => tag.trim())
-      .filter(Boolean);
     const file = formData.get("cover_image_file");
 
     return {
@@ -604,7 +610,7 @@
       original_slug: String(formData.get("original_slug") || "").trim(),
       published_slug: String(formData.get("published_slug") || "").trim(),
       category: String(formData.get("category") || "").trim(),
-      tags,
+      tags: getSelectedTags(),
       excerpt: String(formData.get("excerpt") || "").trim(),
       intent: String(formData.get("intent") || "").trim(),
       featured: formData.get("featured") === "on",
@@ -714,7 +720,6 @@
       ["subtitle", post.subtitle],
       ["slug", post.slug],
       ["category", post.category],
-      ["tags", Array.isArray(post.tags) ? post.tags.join(", ") : ""],
       ["excerpt", post.excerpt],
       ["intent", post.intent],
       ["status", post.status],
@@ -752,6 +757,7 @@
       coverImageFileInput.value = "";
     }
 
+    setSelectedTags(post.tags);
     syncEditorHeading();
     syncHomepageOrderState();
     setLoadedPostMode(post);

@@ -13,7 +13,7 @@
   <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
   <link rel="icon" type="image/png" sizes="32x32" href="../../favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="../../favicon-16x16.png">
-  <link rel="stylesheet" href="../../styles/main.css?v=20260325b">
+  <link rel="stylesheet" href="../../styles/main.css?v=20260428a">
 </head>
 <body class="h-full dark-mode">
   <main class="admin-main">
@@ -110,10 +110,39 @@
                     </select>
                   </label>
 
-                  <label class="admin-field">
-                    <span class="admin-label">Tags</span>
-                    <input class="admin-input" type="text" name="tags" placeholder="Stewardship, Leadership, Capacity">
-                  </label>
+                  <fieldset class="admin-field admin-taxonomy-field">
+                    <legend class="admin-label">Tags</legend>
+                    <div class="admin-taxonomy-group">
+                      <p class="admin-taxonomy-group-title">STEWARD Lenses</p>
+                      <div class="admin-tag-options">
+                        <label class="admin-tag-option"><input type="checkbox" name="tags" value="Scope"> <span>Scope</span></label>
+                        <label class="admin-tag-option"><input type="checkbox" name="tags" value="Trade-Offs"> <span>Trade-Offs</span></label>
+                        <label class="admin-tag-option"><input type="checkbox" name="tags" value="Energy"> <span>Energy</span></label>
+                        <label class="admin-tag-option"><input type="checkbox" name="tags" value="Weight"> <span>Weight</span></label>
+                        <label class="admin-tag-option"><input type="checkbox" name="tags" value="Alignment"> <span>Alignment</span></label>
+                        <label class="admin-tag-option"><input type="checkbox" name="tags" value="Risk"> <span>Risk</span></label>
+                        <label class="admin-tag-option"><input type="checkbox" name="tags" value="Deliberate Boundaries"> <span>Deliberate Boundaries</span></label>
+                      </div>
+                    </div>
+                    <div class="admin-taxonomy-group">
+                      <p class="admin-taxonomy-group-title">Concept Tags</p>
+                      <div class="admin-tag-options">
+                        <label class="admin-tag-option"><input type="checkbox" name="tags" value="stewardship"> <span>stewardship</span></label>
+                        <label class="admin-tag-option"><input type="checkbox" name="tags" value="capacity"> <span>capacity</span></label>
+                        <label class="admin-tag-option"><input type="checkbox" name="tags" value="decision-making"> <span>decision-making</span></label>
+                        <label class="admin-tag-option"><input type="checkbox" name="tags" value="boundaries"> <span>boundaries</span></label>
+                        <label class="admin-tag-option"><input type="checkbox" name="tags" value="leadership"> <span>leadership</span></label>
+                        <label class="admin-tag-option"><input type="checkbox" name="tags" value="judgment"> <span>judgment</span></label>
+                        <label class="admin-tag-option"><input type="checkbox" name="tags" value="authority"> <span>authority</span></label>
+                        <label class="admin-tag-option"><input type="checkbox" name="tags" value="priorities"> <span>priorities</span></label>
+                        <label class="admin-tag-option"><input type="checkbox" name="tags" value="sustainability"> <span>sustainability</span></label>
+                        <label class="admin-tag-option"><input type="checkbox" name="tags" value="timing"> <span>timing</span></label>
+                        <label class="admin-tag-option"><input type="checkbox" name="tags" value="readiness"> <span>readiness</span></label>
+                        <label class="admin-tag-option"><input type="checkbox" name="tags" value="trade-offs"> <span>trade-offs</span></label>
+                        <label class="admin-tag-option"><input type="checkbox" name="tags" value="energy"> <span>energy</span></label>
+                      </div>
+                    </div>
+                  </fieldset>
                 </div>
               </section>
 
@@ -308,6 +337,6 @@
     </section>
   </main>
 
-  <script src="../../scripts/admin-ideas.js?v=20260329a"></script>
+  <script src="../../scripts/admin-ideas.js?v=20260428a"></script>
 </body>
 </html>
