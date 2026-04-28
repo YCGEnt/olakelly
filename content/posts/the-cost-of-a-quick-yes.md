@@ -8,12 +8,13 @@ featured: false
 homepage_featured: false
 date: "2026-03-05"
 updated: "2026-03-05T09:00:00.000Z"
-category: "STEWARD Framework"
-category_slug: "steward-framework"
+category: "Boundaries & Trade-Offs"
+category_slug: "boundaries-trade-offs"
 tags:
-  - "Discernment"
-  - "Trade-Offs"
-  - "Leadership"
+  - "trade-offs"
+  - "Alignment"
+  - "Scope"
+  - "stewardship"
 excerpt: "A fast yes can feel responsive, generous, and strategic. It can also conceal the trade-offs you have not yet named."
 intent: "Explore: why leaders overcommit before they have counted the cost"
 seo_title: "The Cost of a Quick Yes | Ola Kelly"

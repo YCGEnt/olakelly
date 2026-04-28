@@ -9,12 +9,13 @@ homepage_featured: true
 homepage_order: 2
 date: "2026-03-12"
 updated: "2026-03-12T09:00:00.000Z"
-category: "STEWARD Framework"
-category_slug: "steward-framework"
+category: "Decision-Making"
+category_slug: "decision-making"
 tags:
-  - "Stewardship"
-  - "Execution"
-  - "Leadership"
+  - "stewardship"
+  - "boundaries"
+  - "priorities"
+  - "energy"
 excerpt: "In stewardship, done is not the moment work looks impressive. It is the moment responsibility has been carried to a faithful, sustainable finish."
 intent: "Define: what 'done' actually means in stewardship"
 seo_title: "What 'Done' Actually Means in Stewardship | Ola Kelly"

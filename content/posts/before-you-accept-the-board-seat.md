@@ -8,12 +8,14 @@ featured: false
 homepage_featured: false
 date: "2026-03-20"
 updated: "2026-03-20T09:00:00.000Z"
-category: "STEWARD Framework"
-category_slug: "steward-framework"
+category: "Judgment & Authority"
+category_slug: "judgment-authority"
 tags:
-  - "Boards"
-  - "Responsibility"
+  - "judgment"
+  - "authority"
   - "Alignment"
+  - "Risk"
+  - "stewardship"
 excerpt: "A board seat can look strategic long before it becomes sustainable. Stewardship asks whether your presence would be responsible, not merely flattering."
 intent: "Explore: whether symbolic leadership roles create hidden strain"
 seo_title: "Before You Accept the Board Seat | Ola Kelly"
