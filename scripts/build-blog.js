@@ -23,6 +23,7 @@ const postsDirectory = path.join(projectRoot, "content", "posts");
 const redirectsPath = path.join(projectRoot, "content", "redirects.json");
 const sitemapPath = path.join(projectRoot, "sitemap.xml");
 const robotsPath = path.join(projectRoot, "robots.txt");
+const SITEMAP_TIME_ZONE = "America/New_York";
 const staticPages = [
   path.join(projectRoot, "index.html"),
   path.join(projectRoot, "about.html"),
@@ -90,10 +91,16 @@ function newestSourceDate(dates) {
 
 function formatSitemapDate(date) {
   const parsed = new Date(date);
-  if (Number.isNaN(parsed.getTime())) {
-    return new Date().toISOString().slice(0, 10);
-  }
-  return parsed.toISOString().slice(0, 10);
+  const normalizedDate = Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: SITEMAP_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(normalizedDate);
+
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
 }
 
 function escapeXml(value) {
