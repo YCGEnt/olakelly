@@ -8,14 +8,16 @@ featured: true
 homepage_featured: true
 homepage_order: 1
 date: "2026-03-29"
-updated: "2026-03-29T14:45:57.143Z"
+updated: "2026-04-28T23:55:10.808Z"
 category: "Sustainable Leadership"
 category_slug: "sustainable-leadership"
 tags:
+  - "Scope"
+  - "Trade-Offs"
   - "stewardship"
-  - "leadership"
   - "capacity"
   - "decision-making"
+  - "leadership"
   - "trade-offs"
 excerpt: "Leadership isn’t about taking on more—it’s about carrying responsibility well. This piece introduces stewardship as a practical lens for making better leadership decisions around capacity, trade-offs,"
 intent: "Define what you meant by stewardship in leadership—not ownership, but responsibility carried with intention and awareness of cost."
