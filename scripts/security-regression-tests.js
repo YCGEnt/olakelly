@@ -51,8 +51,8 @@ async function run() {
   assert(!adminHtml.includes("cdn.tailwindcss.com"));
   assert(!adminHtml.includes("cdn.jsdelivr.net"));
   assert(!adminHtml.includes("unpkg.com"));
-  assert(adminHtml.includes("Admin build 20260531g"));
-  assert(adminHtml.includes("admin-ideas.js?v=20260531g"));
+  assert(adminHtml.includes("Admin build 20260531h"));
+  assert(adminHtml.includes("admin-ideas.js?v=20260531h"));
 
   const homepageScript = read("scripts/main.js");
   assert(homepageScript.includes("latestIdeasGrid.replaceChildren()"));
@@ -80,6 +80,7 @@ async function run() {
   const security = read("lib/security.js");
   assert(security.includes("const record = await store.getdel(key);"));
   assert(security.includes("const grant = await store.getdel(key);"));
+  assert(security.includes("olakelly-[a-z0-9-]+-ycgents-projects"));
 
   await testAtomicMemoryStore();
   testRedisConfigValidation();
