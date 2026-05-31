@@ -778,18 +778,27 @@
   async function requestApi(url, options = {}) {
     const method = String(options.method || "GET").toUpperCase();
     if (method !== "GET" && (!csrfToken || !nextNonce)) {
-      await refreshSecurityState();
-    }
-    const response = await fetch(url, {
-      credentials: "same-origin",
-      ...options,
-      headers: {
-        "Content-Type": "application/json",
-        ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {}),
-        ...(method !== "GET" && nextNonce ? { "X-Request-Nonce": nextNonce } : {}),
-        ...(options.headers || {})
+      try {
+        await refreshSecurityState();
+      } catch (error) {
+        throw new Error(`Security bootstrap failed: ${error.message || "Unknown error."}`);
       }
-    });
+    }
+    let response;
+    try {
+      response = await fetch(url, {
+        credentials: "same-origin",
+        ...options,
+        headers: {
+          "Content-Type": "application/json",
+          ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {}),
+          ...(method !== "GET" && nextNonce ? { "X-Request-Nonce": nextNonce } : {}),
+          ...(options.headers || {})
+        }
+      });
+    } catch (error) {
+      throw new Error(`Network request failed: ${error.message || "Unknown error."}`);
+    }
     const raw = await response.text();
     let data = {};
     try {
@@ -1046,13 +1055,17 @@
   }
 
   async function handleLogin(password) {
-    await requestApi("/api/admin/login", {
-      method: "POST",
-      body: JSON.stringify({
-        password,
-        totp: document.getElementById("adminTotp")?.value || ""
-      })
-    });
+    try {
+      await requestApi("/api/admin/login", {
+        method: "POST",
+        body: JSON.stringify({
+          password,
+          totp: document.getElementById("adminTotp")?.value || ""
+        })
+      });
+    } catch (error) {
+      throw new Error(`Login request failed: ${error.message || "Unknown error."}`);
+    }
     setEditorAuthenticated(true);
     await loadRecentPosts();
     refreshCleanSnapshot();
