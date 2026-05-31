@@ -51,6 +51,8 @@ async function run() {
   assert(!adminHtml.includes("cdn.tailwindcss.com"));
   assert(!adminHtml.includes("cdn.jsdelivr.net"));
   assert(!adminHtml.includes("unpkg.com"));
+  assert(adminHtml.includes("Admin build 20260531d"));
+  assert(adminHtml.includes("admin-ideas.js?v=20260531d"));
 
   const homepageScript = read("scripts/main.js");
   assert(homepageScript.includes("latestIdeasGrid.replaceChildren()"));

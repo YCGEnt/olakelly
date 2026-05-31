@@ -2904,6 +2904,12 @@ html.dark-mode .admin-login-fallback {
   color: #7d2020;
 }
 
+.admin-build-marker {
+  margin: 14px 0 0;
+  color: var(--color-ink-muted);
+  font-size: 11px;
+}
+
 .is-hidden {
   display: none !important;
 }
