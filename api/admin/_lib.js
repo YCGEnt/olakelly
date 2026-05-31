@@ -586,7 +586,14 @@ async function publishPostToGitHub(body) {
     throw createConflictError("Published slug changes require explicit confirmation.");
   }
 
-  let workingBranch = String(body.content_branch || "").trim();
+  const openPr = await githubApp.findOpenContentPr({
+    slug: nextBasePost.slug,
+    id: nextBasePost.id
+  });
+  const reusablePrBranch = githubApp.isControlledContentBranch(openPr?.head?.ref)
+    ? openPr.head.ref
+    : "";
+  let workingBranch = String(body.content_branch || reusablePrBranch).trim();
   workingBranch = await githubApp.ensureContentBranch({
     slug: nextBasePost.slug,
     existingBranch: workingBranch || null

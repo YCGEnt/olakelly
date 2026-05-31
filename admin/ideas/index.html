@@ -5,9 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ideas Admin | Ola Kelly</title>
 
-  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
-  <script src="https://unpkg.com/@simplewebauthn/browser/dist/bundle/index.umd.min.js"></script>
+  <script src="../../scripts/vendor/lucide-0.263.0.min.js"></script>
+  <script src="../../scripts/vendor/simplewebauthn-browser-13.3.0.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Allura&family=Lato:wght@300;400;700&family=Playfair+Display:wght@600;700&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -337,7 +336,7 @@
                 </div>
                 <div class="admin-preview-placeholder" id="previewPlaceholder">Preview will appear here as you write</div>
                 <div class="admin-preview-error is-hidden" id="previewError" aria-live="polite">Preview could not be generated.</div>
-                <iframe id="previewFrame" class="admin-preview-frame is-hidden" title="Live site preview"></iframe>
+                <iframe id="previewFrame" class="admin-preview-frame is-hidden" title="Live site preview" sandbox="allow-scripts"></iframe>
               </section>
 
               <section class="admin-preview-panel admin-publish-preview-panel" id="publishPreviewPanel">
@@ -359,7 +358,7 @@
                   <a class="btn-secondary is-hidden" id="publishPreviewOpenLink" target="_blank" rel="noreferrer">Open Preview</a>
                 </div>
                 <div class="admin-preview-placeholder" id="publishPreviewPlaceholder">Publish a draft to create a PR preview.</div>
-                <iframe id="publishPreviewFrame" class="admin-preview-frame is-hidden" title="Vercel publish preview"></iframe>
+                <iframe id="publishPreviewFrame" class="admin-preview-frame is-hidden" title="Vercel publish preview" sandbox="allow-scripts"></iframe>
               </section>
 
               <section class="admin-preview-panel admin-security-panel">

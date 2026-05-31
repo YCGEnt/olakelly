@@ -22,6 +22,9 @@ module.exports = async function handler(req, res) {
     validateCsrf(req, await getSession(req, res, { respond: false }));
     const body = schema.parse(await readJsonBody(req));
     const session = await getSession(req, res, { respond: false });
+    if (body.action !== "login" && !session) {
+      return sendJson(res, 401, { error: "Unauthorized." });
+    }
     const context = body.action === "login" ? {} : {
       action: body.action,
       method: body.method,

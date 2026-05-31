@@ -656,18 +656,37 @@ function loadThemePreference() {
 function renderLatestIdeas(posts) {
   if (!latestIdeasGrid) return;
 
-  latestIdeasGrid.innerHTML = posts
-    .map((post, index) => `
-      <article class="article-card ideas-rise flex flex-col" style="animation-delay: ${0.08 + index * 0.1}s;">
-        <p class="ideas-card-category">${post.category}</p>
-        <h3 class="font-heading article-title">${post.title}</h3>
-        <p class="font-body body-copy article-excerpt">${post.excerpt}</p>
-        <div class="ideas-card-footer">
-          <a href="${post.url}" class="read-more-link cta-link">Read More</a>
-        </div>
-      </article>
-    `)
-    .join("");
+  latestIdeasGrid.replaceChildren();
+  posts.forEach((post, index) => {
+    const article = document.createElement("article");
+    article.className = "article-card ideas-rise flex flex-col";
+    article.style.animationDelay = `${0.08 + index * 0.1}s`;
+
+    const category = document.createElement("p");
+    category.className = "ideas-card-category";
+    category.textContent = post.category;
+
+    const title = document.createElement("h3");
+    title.className = "font-heading article-title";
+    title.textContent = post.title;
+
+    const excerpt = document.createElement("p");
+    excerpt.className = "font-body body-copy article-excerpt";
+    excerpt.textContent = post.excerpt;
+
+    const footer = document.createElement("div");
+    footer.className = "ideas-card-footer";
+
+    const link = document.createElement("a");
+    link.className = "read-more-link cta-link";
+    link.textContent = "Read More";
+    const url = String(post.url || "");
+    link.href = url.startsWith("/ideas/") ? url : "/ideas/";
+
+    footer.append(link);
+    article.append(category, title, excerpt, footer);
+    latestIdeasGrid.append(article);
+  });
 }
 
 async function initLatestIdeas() {

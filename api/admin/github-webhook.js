@@ -3,6 +3,7 @@
 const crypto = require("crypto");
 const githubApp = require("../../lib/github-app");
 const { auditEvent, readJsonBody, sendJson } = require("../../lib/security");
+const MAX_WEBHOOK_BODY_BYTES = 1024 * 1024;
 
 function verifySignature(req, rawBody) {
   const secret = String(process.env.GITHUB_WEBHOOK_SECRET || "").trim();
@@ -15,7 +16,18 @@ function verifySignature(req, rawBody) {
 function readRawBody(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
-    req.on("data", (chunk) => chunks.push(chunk));
+    let total = 0;
+    req.on("data", (chunk) => {
+      total += chunk.length;
+      if (total > MAX_WEBHOOK_BODY_BYTES) {
+        const error = new Error("Webhook body is too large.");
+        error.statusCode = 413;
+        reject(error);
+        req.destroy();
+        return;
+      }
+      chunks.push(chunk);
+    });
     req.on("end", () => resolve(Buffer.concat(chunks)));
     req.on("error", reject);
   });
