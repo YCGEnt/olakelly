@@ -31,6 +31,11 @@ function testRedisConfigValidation() {
     () => store.validateRedisConfig(),
     /Upstash Redis REST URL is invalid/
   );
+  process.env.KV_REST_API_URL = "redis://default:token@example.upstash.io:6379";
+  assert.throws(
+    () => store.validateRedisConfig(),
+    /Upstash Redis REST URL is invalid/
+  );
   delete process.env.KV_REST_API_URL;
   delete process.env.KV_REST_API_TOKEN;
 }

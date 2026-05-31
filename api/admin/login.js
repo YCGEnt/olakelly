@@ -23,7 +23,11 @@ module.exports = async function handler(req, res) {
     await auditEvent("auth.login_success", { method: "fallback" }, req);
     return sendJson(res, 200, { ok: true, csrf: result.session.csrf }, { "Set-Cookie": result.cookies });
   } catch (error) {
-    await auditEvent("auth.login_failed", { error: error.message || "Login failed." }, req);
+    try {
+      await auditEvent("auth.login_failed", { error: error.message || "Login failed." }, req);
+    } catch (auditError) {
+      console.error("Unable to record failed admin login audit event.", auditError);
+    }
     return sendJson(res, error.statusCode || 401, { error: error.message || "Invalid credentials." });
   }
 };
