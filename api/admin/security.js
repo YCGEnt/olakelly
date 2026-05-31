@@ -14,7 +14,15 @@ module.exports = async function handler(req, res) {
     return sendJson(res, 405, { error: "Method not allowed." }, { Allow: "GET" });
   }
 
-  const session = await getSession(req, res, { respond: false });
+  let session;
+  try {
+    session = await getSession(req, res, { respond: false });
+  } catch (error) {
+    console.error("Unable to load admin security session.", error);
+    return sendJson(res, 503, {
+      error: `Security session lookup failed: ${error.message || "Unknown error."}`
+    });
+  }
   if (!session) {
     const csrf = createCsrfToken();
     return sendJson(res, 200, {
@@ -31,8 +39,17 @@ module.exports = async function handler(req, res) {
     }, { "Set-Cookie": createCsrfCookie(csrf) });
   }
 
-  const nonce = await createNonce(session.id);
-  const securityEvents = await getHighSignalEvents();
+  let nonce;
+  let securityEvents;
+  try {
+    nonce = await createNonce(session.id);
+    securityEvents = await getHighSignalEvents();
+  } catch (error) {
+    console.error("Unable to load authenticated admin security state.", error);
+    return sendJson(res, 503, {
+      error: `Authenticated security state failed: ${error.message || "Unknown error."}`
+    });
+  }
   return sendJson(res, 200, {
     ok: true,
     authenticated: true,

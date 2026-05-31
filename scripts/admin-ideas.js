@@ -658,7 +658,22 @@
   }
 
   async function refreshSecurityState() {
-    const data = await fetch("/api/admin/security", { credentials: "same-origin" }).then((response) => response.json());
+    let response;
+    try {
+      response = await fetch(`${window.location.origin}/api/admin/security`, { credentials: "same-origin" });
+    } catch (error) {
+      throw new Error(`Security state network request failed: ${error.message || "Unknown error."}`);
+    }
+    const raw = await response.text();
+    let data;
+    try {
+      data = raw ? JSON.parse(raw) : {};
+    } catch (_error) {
+      throw new Error(`Security state returned unreadable HTTP ${response.status}.`);
+    }
+    if (!response.ok) {
+      throw new Error(data.error || `Security state request failed with HTTP ${response.status}.`);
+    }
     csrfToken = data.csrf || csrfToken;
     nextNonce = data.nonce || nextNonce;
     renderSecurityEvents(Array.isArray(data.security_events) ? data.security_events : []);
