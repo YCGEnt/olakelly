@@ -669,7 +669,8 @@
     try {
       data = raw ? JSON.parse(raw) : {};
     } catch (_error) {
-      throw new Error(`Security state returned unreadable HTTP ${response.status}.`);
+      const excerpt = raw.replace(/\s+/g, " ").trim().slice(0, 160);
+      throw new Error(`Security state returned unreadable HTTP ${response.status}${excerpt ? `: ${excerpt}` : "."}`);
     }
     if (!response.ok) {
       throw new Error(data.error || `Security state request failed with HTTP ${response.status}.`);

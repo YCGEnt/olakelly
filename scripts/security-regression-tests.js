@@ -51,8 +51,8 @@ async function run() {
   assert(!adminHtml.includes("cdn.tailwindcss.com"));
   assert(!adminHtml.includes("cdn.jsdelivr.net"));
   assert(!adminHtml.includes("unpkg.com"));
-  assert(adminHtml.includes("Admin build 20260531f"));
-  assert(adminHtml.includes("admin-ideas.js?v=20260531f"));
+  assert(adminHtml.includes("Admin build 20260531g"));
+  assert(adminHtml.includes("admin-ideas.js?v=20260531g"));
 
   const homepageScript = read("scripts/main.js");
   assert(homepageScript.includes("latestIdeasGrid.replaceChildren()"));
@@ -71,6 +71,8 @@ async function run() {
   assert(webhook.includes("Webhook body is too large."));
 
   const auth = read("lib/admin-auth.js");
+  assert(auth.includes('return require("@simplewebauthn/server");'));
+  assert(auth.includes('return require("otplib").verifySync;'));
   assert(auth.includes('store.getdel(`webauthn:${challengeId}`)'));
   assert(auth.includes("challengeRecord.sessionId !== session.id"));
   assert(auth.includes("hashPayload(storedContext) !== hashPayload(context || {})"));
