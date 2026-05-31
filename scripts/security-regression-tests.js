@@ -23,6 +23,18 @@ async function testAtomicMemoryStore() {
   assert.strictEqual(await store.getdel("security-test:single-use"), null);
 }
 
+function testRedisConfigValidation() {
+  const store = require("../lib/security-store");
+  process.env.KV_REST_API_URL = "redis://not-a-rest-url";
+  process.env.KV_REST_API_TOKEN = "test-token";
+  assert.throws(
+    () => store.validateRedisConfig(),
+    /Upstash Redis REST URL is invalid/
+  );
+  delete process.env.KV_REST_API_URL;
+  delete process.env.KV_REST_API_TOKEN;
+}
+
 async function run() {
   const sanitized = sanitizeHtml("<xmp><script>alert(1)</script></xmp>");
   assert(!sanitized.includes("<script>"), "sanitize-html must reject the xmp script bypass");
@@ -61,6 +73,7 @@ async function run() {
   assert(security.includes("const grant = await store.getdel(key);"));
 
   await testAtomicMemoryStore();
+  testRedisConfigValidation();
   console.log("Security regression checks passed.");
 }
 
