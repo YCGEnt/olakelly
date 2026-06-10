@@ -3,7 +3,7 @@
 const crypto = require("crypto");
 const path = require("path");
 const matter = require("gray-matter");
-const { computePost, renderPostPage, serializeFrontMatter } = require("../../lib/blog");
+const { computePost, serializeFrontMatter } = require("../../lib/blog");
 const githubApp = require("../../lib/github-app");
 const { validatePostPayload } = require("../../lib/content-policy");
 const { hashPayload } = require("../../lib/security");
@@ -14,6 +14,127 @@ const {
 } = require("../../lib/admin-auth");
 
 const DRAFT_SCHEMA_VERSION = 1;
+
+function escapePreviewHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function renderPreviewDocument(post) {
+  const tags = post.tags.length
+    ? `<div class="tag-row">${post.tags.map((tag) => `<span>${escapePreviewHtml(tag)}</span>`).join("")}</div>`
+    : "";
+  const subtitle = post.subtitle ? `<p class="subtitle">${escapePreviewHtml(post.subtitle)}</p>` : "";
+  const coverImage = post.cover_image
+    ? `<figure><img src="${escapePreviewHtml(post.cover_image)}" alt="${escapePreviewHtml(post.cover_image_alt || post.title)}"></figure>`
+    : "";
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root { color-scheme: light; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #fffaf4;
+      color: #070b33;
+      font-family: Georgia, "Times New Roman", serif;
+      line-height: 1.72;
+    }
+    .preview-shell {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 56px 42px 72px;
+    }
+    .kicker {
+      margin: 0 0 18px;
+      color: #6f6a82;
+      font: 700 12px/1.2 Arial, sans-serif;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 0;
+      color: #070b33;
+      font-size: clamp(38px, 7vw, 68px);
+      line-height: .98;
+      font-weight: 400;
+      letter-spacing: 0;
+    }
+    .subtitle {
+      margin: 18px 0 0;
+      color: #56506f;
+      font: 400 21px/1.55 Arial, sans-serif;
+    }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 16px;
+      margin: 24px 0 34px;
+      color: #777188;
+      font: 700 12px/1.4 Arial, sans-serif;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    figure { margin: 0 0 34px; }
+    img { display: block; width: 100%; border-radius: 8px; }
+    .content {
+      color: #19143f;
+      font-size: 20px;
+    }
+    .content p,
+    .content ul,
+    .content ol,
+    .content blockquote {
+      margin: 0 0 24px;
+    }
+    .content h2,
+    .content h3 {
+      margin: 42px 0 16px;
+      color: #070b33;
+      line-height: 1.12;
+    }
+    .content a { color: #4238a0; }
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 34px;
+      font: 700 12px/1 Arial, sans-serif;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .tag-row span {
+      border: 1px solid rgba(7, 11, 51, .14);
+      border-radius: 999px;
+      padding: 8px 10px;
+      background: #fff;
+    }
+  </style>
+</head>
+<body>
+  <main class="preview-shell">
+    <p class="kicker">${escapePreviewHtml(post.category)}</p>
+    <h1>${escapePreviewHtml(post.title)}</h1>
+    ${subtitle}
+    <div class="meta">
+      <span>${post.reading_time} min read</span>
+      <span>${post.word_count} words</span>
+    </div>
+    ${coverImage}
+    <article class="content">${post.content_html}</article>
+    ${tags}
+  </main>
+</body>
+</html>`;
+}
 
 function sendJson(res, statusCode, payload, headers = {}) {
   Object.entries({
@@ -133,13 +254,9 @@ function buildPreviewPost(body) {
 
 function renderPreviewHtml(body) {
   const previewPost = buildPreviewPost(body);
-  const html = renderPostPage(previewPost, [])
-    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "")
-    .replace(/<script\b[^>]*\/>/gi, "")
-    .replace(/<head>/i, '<head>\n  <base href="/">');
   return {
     post: previewPost,
-    html
+    html: renderPreviewDocument(previewPost)
   };
 }
 

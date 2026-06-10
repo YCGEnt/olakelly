@@ -67,8 +67,8 @@ async function run() {
   assert(!adminHtml.includes("cdn.tailwindcss.com"));
   assert(!adminHtml.includes("cdn.jsdelivr.net"));
   assert(!adminHtml.includes("unpkg.com"));
-  assert(adminHtml.includes("Admin build 20260610c"));
-  assert(adminHtml.includes("admin-ideas.js?v=20260610c"));
+  assert(adminHtml.includes("Admin build 20260610d"));
+  assert(adminHtml.includes("admin-ideas.js?v=20260610d"));
 
   const { renderPreviewHtml } = require("../api/admin/_lib");
   const preview = renderPreviewHtml({
@@ -79,9 +79,10 @@ async function run() {
     excerpt: "A test preview.",
     content: "This is a preview test."
   });
-  assert(preview.html.includes("<base href=\"/\">"));
+  assert(preview.html.includes("preview-shell"));
   assert(!/<script\b/i.test(preview.html));
   assert(preview.html.includes("Preview Test"));
+  assert(preview.html.includes("This is a preview test."));
 
   const homepageScript = read("scripts/main.js");
   assert(homepageScript.includes("latestIdeasGrid.replaceChildren()"));
