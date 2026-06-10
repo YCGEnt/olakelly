@@ -40,6 +40,22 @@ function testRedisConfigValidation() {
   delete process.env.KV_REST_API_TOKEN;
 }
 
+function testTotpVerifier() {
+  const { generateSync } = require("otplib");
+  const { verifyTotpToken } = require("../lib/admin-auth");
+  const secret = "JMJSCZB5HL5MBMRSLKMNVX52XIJTBWUH";
+  const epoch = Math.floor(Date.now() / 1000);
+  const token = generateSync({ secret, epoch });
+  const originalDateNow = Date.now;
+  Date.now = () => epoch * 1000;
+  try {
+    assert.strictEqual(verifyTotpToken(token, secret), true);
+    assert.strictEqual(verifyTotpToken("000000", secret), false);
+  } finally {
+    Date.now = originalDateNow;
+  }
+}
+
 async function run() {
   const sanitized = sanitizeHtml("<xmp><script>alert(1)</script></xmp>");
   assert(!sanitized.includes("<script>"), "sanitize-html must reject the xmp script bypass");
@@ -72,7 +88,8 @@ async function run() {
 
   const auth = read("lib/admin-auth.js");
   assert(auth.includes('return require("@simplewebauthn/server");'));
-  assert(auth.includes('return require("otplib").verifySync;'));
+  assert(auth.includes("function verifyTotpToken"));
+  assert(auth.includes('crypto.createHmac("sha1"'));
   assert(auth.includes('store.getdel(`webauthn:${challengeId}`)'));
   assert(auth.includes("challengeRecord.sessionId !== session.id"));
   assert(auth.includes("hashPayload(storedContext) !== hashPayload(context || {})"));
@@ -84,6 +101,7 @@ async function run() {
 
   await testAtomicMemoryStore();
   testRedisConfigValidation();
+  testTotpVerifier();
   console.log("Security regression checks passed.");
 }
 
