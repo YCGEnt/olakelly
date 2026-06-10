@@ -61,14 +61,27 @@ async function run() {
   assert(!sanitized.includes("<script>"), "sanitize-html must reject the xmp script bypass");
 
   const adminHtml = read("admin/ideas/index.html");
-  assert(adminHtml.includes('id="previewFrame" class="admin-preview-frame is-hidden" title="Live site preview" sandbox="allow-scripts"'));
+  assert(adminHtml.includes('id="previewFrame" class="admin-preview-frame is-hidden" title="Live site preview" sandbox=""'));
   assert(adminHtml.includes('id="publishPreviewFrame" class="admin-preview-frame is-hidden" title="Vercel publish preview" sandbox="allow-scripts"'));
   assert(!adminHtml.includes('sandbox="allow-scripts allow-same-origin"'));
   assert(!adminHtml.includes("cdn.tailwindcss.com"));
   assert(!adminHtml.includes("cdn.jsdelivr.net"));
   assert(!adminHtml.includes("unpkg.com"));
-  assert(adminHtml.includes("Admin build 20260610a"));
-  assert(adminHtml.includes("admin-ideas.js?v=20260610a"));
+  assert(adminHtml.includes("Admin build 20260610b"));
+  assert(adminHtml.includes("admin-ideas.js?v=20260610b"));
+
+  const { renderPreviewHtml } = require("../api/admin/_lib");
+  const preview = renderPreviewHtml({
+    title: "Preview Test",
+    slug: "preview-test",
+    category: "Sustainable Leadership",
+    tags: ["Scope", "leadership"],
+    excerpt: "A test preview.",
+    content: "This is a preview test."
+  });
+  assert(preview.html.includes("<base href=\"/\">"));
+  assert(!/<script\b/i.test(preview.html));
+  assert(preview.html.includes("Preview Test"));
 
   const homepageScript = read("scripts/main.js");
   assert(homepageScript.includes("latestIdeasGrid.replaceChildren()"));

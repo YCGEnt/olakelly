@@ -133,9 +133,13 @@ function buildPreviewPost(body) {
 
 function renderPreviewHtml(body) {
   const previewPost = buildPreviewPost(body);
+  const html = renderPostPage(previewPost, [])
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "")
+    .replace(/<script\b[^>]*\/>/gi, "")
+    .replace(/<head>/i, '<head>\n  <base href="/">');
   return {
     post: previewPost,
-    html: renderPostPage(previewPost, [])
+    html
   };
 }
 
