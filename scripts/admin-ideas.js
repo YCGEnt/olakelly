@@ -76,6 +76,7 @@
   let slugUnlockedForSession = false;
   let csrfToken = "";
   let nextNonce = "";
+  let stateChangingRequestQueue = Promise.resolve();
   let publishPreviewPollTimer = null;
   let publishPreviewStartedAt = null;
   let publishPreviewBranchValue = "";
@@ -791,8 +792,7 @@
     };
   }
 
-  async function requestApi(url, options = {}) {
-    const method = String(options.method || "GET").toUpperCase();
+  async function sendApiRequest(url, options, method) {
     if (method !== "GET" && (!csrfToken || !nextNonce)) {
       try {
         await refreshSecurityState();
@@ -834,6 +834,19 @@
       throw error;
     }
     return data;
+  }
+
+  function requestApi(url, options = {}) {
+    const method = String(options.method || "GET").toUpperCase();
+    if (method === "GET") {
+      return sendApiRequest(url, options, method);
+    }
+
+    const request = stateChangingRequestQueue
+      .catch(() => {})
+      .then(() => sendApiRequest(url, options, method));
+    stateChangingRequestQueue = request;
+    return request;
   }
 
   function formatRecentPostOption(post) {

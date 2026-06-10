@@ -67,8 +67,8 @@ async function run() {
   assert(!adminHtml.includes("cdn.tailwindcss.com"));
   assert(!adminHtml.includes("cdn.jsdelivr.net"));
   assert(!adminHtml.includes("unpkg.com"));
-  assert(adminHtml.includes("Admin build 20260610b"));
-  assert(adminHtml.includes("admin-ideas.js?v=20260610b"));
+  assert(adminHtml.includes("Admin build 20260610c"));
+  assert(adminHtml.includes("admin-ideas.js?v=20260610c"));
 
   const { renderPreviewHtml } = require("../api/admin/_lib");
   const preview = renderPreviewHtml({
@@ -106,6 +106,10 @@ async function run() {
   assert(auth.includes('store.getdel(`webauthn:${challengeId}`)'));
   assert(auth.includes("challengeRecord.sessionId !== session.id"));
   assert(auth.includes("hashPayload(storedContext) !== hashPayload(context || {})"));
+
+  const adminScript = read("scripts/admin-ideas.js");
+  assert(adminScript.includes("stateChangingRequestQueue"));
+  assert(adminScript.includes("sendApiRequest(url, options, method)"));
 
   const security = read("lib/security.js");
   assert(security.includes("const record = await store.getdel(key);"));
