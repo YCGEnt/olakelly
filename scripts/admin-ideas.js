@@ -186,6 +186,7 @@
     bodyElement.classList.toggle("dark-mode", isDarkMode);
     localStorage.setItem("darkMode", isDarkMode ? "true" : "false");
     syncThemeToggle();
+    schedulePreview();
   }
 
   function toggleTheme() {
@@ -788,6 +789,7 @@
       cover_image: String(formData.get("cover_image") || "").trim(),
       cover_image_alt: String(formData.get("cover_image_alt") || "").trim(),
       related_posts: getHiddenRelatedPosts(),
+      preview_theme: htmlElement.classList.contains("dark-mode") ? "dark" : "light",
       cover_image_data: file instanceof File && file.size > 0 ? await readFileAsDataUrl(file) : ""
     };
   }

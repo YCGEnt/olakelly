@@ -67,8 +67,8 @@ async function run() {
   assert(!adminHtml.includes("cdn.tailwindcss.com"));
   assert(!adminHtml.includes("cdn.jsdelivr.net"));
   assert(!adminHtml.includes("unpkg.com"));
-  assert(adminHtml.includes("Admin build 20260611a"));
-  assert(adminHtml.includes("admin-ideas.js?v=20260611a"));
+  assert(adminHtml.includes("Admin build 20260611b"));
+  assert(adminHtml.includes("admin-ideas.js?v=20260611b"));
 
   const { renderPreviewHtml } = require("../api/admin/_lib");
   const preview = renderPreviewHtml({
@@ -77,9 +77,12 @@ async function run() {
     category: "Sustainable Leadership",
     tags: ["Scope", "leadership"],
     excerpt: "A test preview.",
-    content: "This is a preview test."
+    content: "This is a preview test.",
+    preview_theme: "dark"
   });
   assert(preview.html.includes("preview-shell"));
+  assert(preview.html.includes('body class="preview-dark"'));
+  assert(preview.html.includes("body.preview-dark"));
   assert(!/<script\b/i.test(preview.html));
   assert(preview.html.includes("Preview Test"));
   assert(preview.html.includes("This is a preview test."));
@@ -111,6 +114,7 @@ async function run() {
   const adminScript = read("scripts/admin-ideas.js");
   assert(adminScript.includes("stateChangingRequestQueue"));
   assert(adminScript.includes("sendApiRequest(url, options, method)"));
+  assert(adminScript.includes('preview_theme: htmlElement.classList.contains("dark-mode") ? "dark" : "light"'));
 
   const security = read("lib/security.js");
   assert(security.includes("const record = await store.getdel(key);"));

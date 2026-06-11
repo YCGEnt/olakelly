@@ -24,7 +24,8 @@ function escapePreviewHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
-function renderPreviewDocument(post) {
+function renderPreviewDocument(post, theme = "light") {
+  const isDarkTheme = theme === "dark";
   const tags = post.tags.length
     ? `<div class="tag-row">${post.tags.map((tag) => `<span>${escapePreviewHtml(tag)}</span>`).join("")}</div>`
     : "";
@@ -32,6 +33,7 @@ function renderPreviewDocument(post) {
   const coverImage = post.cover_image
     ? `<figure><img src="${escapePreviewHtml(post.cover_image)}" alt="${escapePreviewHtml(post.cover_image_alt || post.title)}"></figure>`
     : "";
+  const bodyClass = isDarkTheme ? "preview-dark" : "preview-light";
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -39,7 +41,7 @@ function renderPreviewDocument(post) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    :root { color-scheme: light; }
+    :root { color-scheme: light dark; }
     * { box-sizing: border-box; }
     body {
       margin: 0;
@@ -47,6 +49,10 @@ function renderPreviewDocument(post) {
       color: #070b33;
       font-family: Georgia, "Times New Roman", serif;
       line-height: 1.72;
+    }
+    body.preview-dark {
+      background: #0b0d2f;
+      color: #f7f1e9;
     }
     .preview-shell {
       max-width: 760px;
@@ -117,9 +123,30 @@ function renderPreviewDocument(post) {
       padding: 8px 10px;
       background: #fff;
     }
+    body.preview-dark .kicker,
+    body.preview-dark .meta {
+      color: rgba(247, 241, 233, .62);
+    }
+    body.preview-dark h1,
+    body.preview-dark .content,
+    body.preview-dark .content h2,
+    body.preview-dark .content h3 {
+      color: #f8f0e7;
+    }
+    body.preview-dark .subtitle {
+      color: rgba(247, 241, 233, .76);
+    }
+    body.preview-dark .content a {
+      color: #c9c0ff;
+    }
+    body.preview-dark .tag-row span {
+      border-color: rgba(248, 240, 231, .2);
+      background: rgba(255, 255, 255, .06);
+      color: #f8f0e7;
+    }
   </style>
 </head>
-<body>
+<body class="${bodyClass}">
   <main class="preview-shell">
     <p class="kicker">${escapePreviewHtml(post.category)}</p>
     <h1>${escapePreviewHtml(post.title)}</h1>
@@ -254,9 +281,10 @@ function buildPreviewPost(body) {
 
 function renderPreviewHtml(body) {
   const previewPost = buildPreviewPost(body);
+  const theme = body.preview_theme === "dark" ? "dark" : "light";
   return {
     post: previewPost,
-    html: renderPreviewDocument(previewPost)
+    html: renderPreviewDocument(previewPost, theme)
   };
 }
 
