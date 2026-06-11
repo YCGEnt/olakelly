@@ -61,14 +61,14 @@ async function run() {
   assert(!sanitized.includes("<script>"), "sanitize-html must reject the xmp script bypass");
 
   const adminHtml = read("admin/ideas/index.html");
-  assert(adminHtml.includes('id="previewFrame" class="admin-preview-frame is-hidden" title="Live site preview" sandbox=""'));
+  assert(adminHtml.includes('id="previewFrame" class="admin-preview-frame is-hidden" title="Live site preview" sandbox="allow-same-origin"'));
   assert(adminHtml.includes('id="publishPreviewFrame" class="admin-preview-frame is-hidden" title="Vercel publish preview" sandbox="allow-scripts"'));
   assert(!adminHtml.includes('sandbox="allow-scripts allow-same-origin"'));
   assert(!adminHtml.includes("cdn.tailwindcss.com"));
   assert(!adminHtml.includes("cdn.jsdelivr.net"));
   assert(!adminHtml.includes("unpkg.com"));
-  assert(adminHtml.includes("Admin build 20260610d"));
-  assert(adminHtml.includes("admin-ideas.js?v=20260610d"));
+  assert(adminHtml.includes("Admin build 20260611a"));
+  assert(adminHtml.includes("admin-ideas.js?v=20260611a"));
 
   const { renderPreviewHtml } = require("../api/admin/_lib");
   const preview = renderPreviewHtml({
