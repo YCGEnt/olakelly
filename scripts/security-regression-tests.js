@@ -67,8 +67,8 @@ async function run() {
   assert(!adminHtml.includes("cdn.tailwindcss.com"));
   assert(!adminHtml.includes("cdn.jsdelivr.net"));
   assert(!adminHtml.includes("unpkg.com"));
-  assert(adminHtml.includes("Admin build 20260611b"));
-  assert(adminHtml.includes("admin-ideas.js?v=20260611b"));
+  assert(adminHtml.includes("Admin build 20260611c"));
+  assert(adminHtml.includes("admin-ideas.js?v=20260611c"));
 
   const { renderPreviewHtml } = require("../api/admin/_lib");
   const preview = renderPreviewHtml({
@@ -114,7 +114,11 @@ async function run() {
   const adminScript = read("scripts/admin-ideas.js");
   assert(adminScript.includes("stateChangingRequestQueue"));
   assert(adminScript.includes("sendApiRequest(url, options, method)"));
+  assert(adminScript.includes("...payload,"));
   assert(adminScript.includes('preview_theme: htmlElement.classList.contains("dark-mode") ? "dark" : "light"'));
+  const sharedPayloadStart = adminScript.indexOf("async function getFormPayload()");
+  const sharedPayloadEnd = adminScript.indexOf("async function sendApiRequest", sharedPayloadStart);
+  assert(!adminScript.slice(sharedPayloadStart, sharedPayloadEnd).includes("preview_theme"));
 
   const security = read("lib/security.js");
   assert(security.includes("const record = await store.getdel(key);"));
