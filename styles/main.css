@@ -2906,7 +2906,7 @@ html.dark-mode .admin-login-fallback {
 
 .admin-build-marker {
   margin: 14px 0 0;
-  color: var(--color-ink-muted);
+  color: rgba(5, 10, 48, 0.56);
   font-size: 11px;
 }
 
@@ -2933,8 +2933,9 @@ html.dark-mode .ideas-post-body,
 html.dark-mode .ideas-linkedin-note,
 html.dark-mode .admin-copy,
 html.dark-mode .admin-login-note,
-html.dark-mode .admin-hint {
-  color: rgba(251, 246, 242, 0.76);
+html.dark-mode .admin-hint,
+html.dark-mode .admin-build-marker {
+  color: rgba(251, 246, 242, 0.72);
 }
 
 html.dark-mode .ideas-post-shell .ideas-post-body h2,
